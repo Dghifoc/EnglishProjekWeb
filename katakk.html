@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐸 Frog punch - Learn English Language</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #1a1a2e; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 16px; }
+  h1 { color: white; font-size: 22px; margin-bottom: 12px; text-align: center; }
+  #waf-game { background: linear-gradient(180deg, #87CEEB 0%, #87CEEB 50%, #4a8c3f 50%, #3d7a35 100%); border-radius: 16px; padding: 16px; width: 100%; max-width: 480px; position: relative; overflow: hidden; user-select: none; }
+  #waf-game::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: repeating-linear-gradient(90deg, #4a8c3f 0px, #5aa348 20px, #4a8c3f 40px); opacity: 0.3; pointer-events: none; }
+  .cloud { position: absolute; background: white; border-radius: 50px; opacity: 0.85; }
+  .cloud::before, .cloud::after { content: ''; position: absolute; background: white; border-radius: 50%; }
+  .c1 { width: 80px; height: 25px; top: 20px; left: 60px; }
+  .c1::before { width: 35px; height: 35px; top: -18px; left: 10px; }
+  .c1::after { width: 25px; height: 25px; top: -12px; left: 35px; }
+  .c2 { width: 60px; height: 20px; top: 35px; right: 100px; }
+  .c2::before { width: 28px; height: 28px; top: -14px; left: 8px; }
+  .c2::after { width: 20px; height: 20px; top: -10px; left: 28px; }
+  #waf-header { position: relative; z-index: 10; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+  .stat-box { background: rgba(255,255,255,0.92); border-radius: 10px; padding: 6px 14px; text-align: center; min-width: 70px; }
+  .stat-label { font-size: 10px; color: #666; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-val { font-size: 20px; font-weight: 700; color: #2c2c2a; line-height: 1.1; }
+  #waf-topicbadge { font-size: 11px; font-weight: 600; background: rgba(240,192,64,0.9); color: #2c2c2a; padding: 3px 10px; border-radius: 20px; }
+  #waf-progress { position: relative; z-index: 10; height: 6px; background: rgba(255,255,255,0.3); border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
+  #waf-progress-bar { height: 100%; background: #f0c040; border-radius: 6px; transition: width 0.1s linear; }
+  #waf-question { position: relative; z-index: 10; background: rgba(255,255,255,0.95); border-radius: 14px; padding: 10px 14px; margin-bottom: 14px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  #waf-qtopic { font-size: 10px; color: #888; font-weight: 500; letter-spacing: 0.5px; margin-bottom: 2px; }
+  #waf-qtext { font-size: 15px; font-weight: 600; color: #2c2c2a; line-height: 1.3; }
+  #waf-hint { font-size: 12px; color: #3d7a35; margin-top: 3px; font-weight: 500; }
+  #waf-grid { position: relative; z-index: 10; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 auto; max-width: 360px; }
+  .hole { position: relative; height: 90px; display: flex; align-items: flex-end; justify-content: center; }
+  .hole-bg { position: absolute; bottom: 0; width: 80px; height: 28px; background: #2d5a1e; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+  .frog { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%) translateY(100px); width: 72px; height: 72px; cursor: pointer; transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1); font-size: 11px; text-align: center; opacity: 0; }
+  .frog.up { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .frog.hit { transform: translateX(-50%) translateY(50px) scale(0.7); opacity: 0; }
+  .frog-body { width: 68px; height: 60px; background: #5cb85c; border-radius: 50% 50% 40% 40%; position: relative; display: flex; align-items: center; justify-content: center; flex-direction: column; border: 2px solid #4a9e4a; }
+  .frog-eyes { display: flex; gap: 8px; margin-top: -4px; }
+  .frog-eye { width: 14px; height: 14px; background: white; border-radius: 50%; border: 2px solid #4a9e4a; display: flex; align-items: center; justify-content: center; }
+  .frog-pupil { width: 7px; height: 7px; background: #1a1a1a; border-radius: 50%; }
+  .frog-word { font-size: 10px; font-weight: 700; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.5); margin-top: 2px; padding: 0 4px; text-align: center; line-height: 1.2; max-width: 64px; overflow: hidden; }
+  .frog-legs { display: flex; gap: 26px; margin-top: 2px; }
+  .frog-leg { width: 14px; height: 10px; background: #5cb85c; border-radius: 0 0 8px 8px; border: 2px solid #4a9e4a; }
+  .frog.correct .frog-body { background: #27ae60; border-color: #1e8449; }
+  .frog.wrong .frog-body { background: #e74c3c; border-color: #c0392b; }
+  #waf-feedback { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 36px; font-weight: 800; pointer-events: none; z-index: 100; opacity: 0; }
+  #waf-feedback.show { opacity: 1; animation: popfeed 0.6s forwards; }
+  @keyframes popfeed { 0%{transform:translate(-50%,-50%) scale(0.5);opacity:1} 60%{transform:translate(-50%,-60%) scale(1.2);opacity:1} 100%{transform:translate(-50%,-80%) scale(1);opacity:0} }
+  #waf-controls { position: relative; z-index: 10; display: flex; justify-content: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .btn-ctrl { background: rgba(255,255,255,0.92); border: none; border-radius: 10px; padding: 8px 20px; font-size: 13px; font-weight: 600; cursor: pointer; color: #2c2c2a; }
+  .btn-ctrl:hover { background: white; }
+  .btn-ctrl.primary { background: #f0c040; color: #2c2c2a; }
+  #waf-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); z-index: 50; display: flex; align-items: center; justify-content: center; border-radius: 16px; flex-direction: column; gap: 12px; }
+  .overlay-box { background: white; border-radius: 16px; padding: 24px 32px; text-align: center; max-width: 300px; }
+  .overlay-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; color: #2c2c2a; }
+  .overlay-sub { font-size: 14px; color: #666; margin-bottom: 16px; line-height: 1.5; }
+  .overlay-score { font-size: 40px; font-weight: 800; color: #27ae60; }
+  .btn-big { background: #f0c040; border: none; border-radius: 12px; padding: 10px 28px; font-size: 15px; font-weight: 700; cursor: pointer; color: #2c2c2a; margin: 4px; }
+  .btn-big.gray { background: #e8e8e8; }
+  .star-sparkle { position: fixed; pointer-events: none; animation: sparkle 0.5s forwards; font-size: 20px; z-index: 200; }
+  @keyframes sparkle { 0%{opacity:1;transform:scale(1) translateY(0)} 100%{opacity:0;transform:scale(1.5) translateY(-40px)} }
+  .hammer-cursor { position: fixed; pointer-events: none; z-index: 9999; font-size: 28px; transform: translate(-50%,-50%) rotate(-30deg); transition: transform 0.05s; }
+  .hammer-cursor.swing { transform: translate(-50%,-50%) rotate(30deg); }
+</style>
+</head>
+<body>
+<h1>🐸 Frog punch - Learn English Language</h1>
+<div id="waf-game">
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div id="waf-header">
+    <div class="stat-box"><div class="stat-label">Skor</div><div class="stat-val" id="waf-score">0</div></div>
+    <div id="waf-topicbadge">🎯 Siap Bermain</div>
+    <div class="stat-box"><div class="stat-label">Waktu</div><div class="stat-val" id="waf-timer">60</div></div>
+  </div>
+  <div id="waf-progress"><div id="waf-progress-bar" style="width:100%"></div></div>
+  <div id="waf-question">
+    <div id="waf-qtopic">PILIH JAWABAN YANG BENAR</div>
+    <div id="waf-qtext">Tekan Mulai untuk bermain!</div>
+    <div id="waf-hint"></div>
+  </div>
+  <div id="waf-grid">
+    <div class="hole"><div class="hole-bg"></div><div class="frog" id="f0" onclick="whack(0)"><div class="frog-body"><div class="frog-eyes"><div class="frog-eye"><div class="frog-pupil"></div></div><div class="frog-eye"><div class="frog-pupil"></div></div></div><div class="frog-word" id="fw0"></div></div><div class="frog-legs"><div class="frog-leg"></div><div class="frog-leg"></div></div></div></div>
+    <div class="hole"><div class="hole-bg"></div><div class="frog" id="f1" onclick="whack(1)"><div class="frog-body"><div class="frog-eyes"><div class="frog-eye"><div class="frog-pupil"></div></div><div class="frog-eye"><div class="frog-pupil"></div></div></div><div class="frog-word" id="fw1"></div></div><div class="frog-legs"><div class="frog-leg"></div><div class="frog-leg"></div></div></div></div>
+    <div class="hole"><div class="hole-bg"></div><div class="frog" id="f2" onclick="whack(2)"><div class="frog-body"><div class="frog-eyes"><div class="frog-eye"><div class="frog-pupil"></div></div><div class="frog-eye"><div class="frog-pupil"></div></div></div><div class="frog-word" id="fw2"></div></div><div class="frog-legs"><div class="frog-leg"></div><div class="frog-leg"></div></div></div></div>
+    <div class="hole"><div class="hole-bg"></div><div class="frog" id="f3" onclick="whack(3)"><div class="frog-body"><div class="frog-eyes"><div class="frog-eye"><div class="frog-pupil"></div></div><div class="frog-eye"><div class="frog-pupil"></div></div></div><div class="frog-word" id="fw3"></div></div><div class="frog-legs"><div class="frog-leg"></div><div class="frog-leg"></div></div></div></div>
+    <div class="hole"><div class="hole-bg"></div><div class="frog" id="f4" onclick="whack(4)"><div class="frog-body"><div class="frog-eyes"><div class="frog-eye"><div class="frog-pupil"></div></div><div class="frog-eye"><div class="frog-pupil"></div></div></div><div class="frog-word" id="fw4"></div></div><div class="frog-legs"><div class="frog-leg"></div><div class="frog-leg"></div></div></div></div>
+    <div class="hole"><div class="hole-bg"></div><div class="frog" id="f5" onclick="whack(5)"><div class="frog-body"><div class="frog-eyes"><div class="frog-eye"><div class="frog-pupil"></div></div><div class="frog-eye"><div class="frog-pupil"></div></div></div><div class="frog-word" id="fw5"></div></div><div class="frog-legs"><div class="frog-leg"></div><div class="frog-leg"></div></div></div></div>
+  </div>
+  <div id="waf-controls">
+    <button class="btn-ctrl primary" onclick="startGame()">🎮 Mulai Bermain</button>
+    <button class="btn-ctrl" onclick="changeLevel()">📚 Ganti Topik</button>
+  </div>
+  <div id="waf-feedback"></div>
+  <div id="waf-overlay">
+    <div class="overlay-box">
+      <div style="font-size:48px;margin-bottom:8px">🐸</div>
+      <div class="overlay-title">Hit the Frog!</div>
+      <div class="overlay-sub">Hit the frog with the answer that <strong>CORRECT</strong> in English. Don't hit the wrong one! Score +10 for correct, -3 for incorrect.</div>
+      <button class="btn-big" onclick="startGame()">🎮 START NOW</button>
+    </div>
+  </div>
+</div>
+<div id="waf-feedback"></div>
+
+<script>
+const TOPICS = [
+  { name: "🍎 Buah & Sayur", questions: [
+    { q: "Apa bahasa Inggris 'apel'?", correct: "apple", wrongs: ["mango","grape","peach","plum","melon","berry","lemon","lime","cherry","pear"] },
+    { q: "Apa bahasa Inggris 'mangga'?", correct: "mango", wrongs: ["apple","grape","peach","cherry","lemon","lime","melon","plum","pear","fig"] },
+    { q: "Apa bahasa Inggris 'anggur'?", correct: "grape", wrongs: ["berry","plum","peach","apple","lemon","olive","fig","pear","date","kiwi"] },
+    { q: "Apa bahasa Inggris 'pisang'?", correct: "banana", wrongs: ["mango","apple","grape","cherry","melon","berry","pear","plum","lemon","fig"] },
+    { q: "Apa bahasa Inggris 'wortel'?", correct: "carrot", wrongs: ["onion","potato","tomato","garlic","ginger","corn","celery","beet","radish","yam"] },
+    { q: "Apa bahasa Inggris 'tomat'?", correct: "tomato", wrongs: ["potato","carrot","onion","garlic","pepper","corn","celery","beet","yam","radish"] },
+    { q: "Apa bahasa Inggris 'kentang'?", correct: "potato", wrongs: ["tomato","carrot","onion","garlic","pepper","corn","celery","yam","beet","radish"] },
+    { q: "Apa bahasa Inggris 'stroberi'?", correct: "strawberry", wrongs: ["blueberry","raspberry","cherry","grape","lemon","mango","melon","plum","peach","fig"] },
+    { q: "Apa bahasa Inggris 'jeruk'?", correct: "orange", wrongs: ["lemon","mango","melon","apple","grape","cherry","berry","peach","plum","pear"] },
+    { q: "Apa bahasa Inggris 'semangka'?", correct: "watermelon", wrongs: ["melon","cantaloupe","pumpkin","mango","papaya","coconut","guava","lychee","durian","fig"] },
+    { q: "Apa bahasa Inggris 'nanas'?", correct: "pineapple", wrongs: ["mango","papaya","guava","coconut","lychee","durian","avocado","jackfruit","melon","banana"] },
+    { q: "Apa bahasa Inggris 'pepaya'?", correct: "papaya", wrongs: ["mango","pineapple","guava","banana","coconut","lychee","avocado","jackfruit","melon","fig"] },
+    { q: "Apa bahasa Inggris 'bawang merah'?", correct: "onion", wrongs: ["garlic","ginger","carrot","potato","tomato","celery","pepper","radish","yam","corn"] },
+    { q: "Apa bahasa Inggris 'bawang putih'?", correct: "garlic", wrongs: ["onion","ginger","carrot","potato","tomato","celery","pepper","radish","yam","corn"] },
+    { q: "Apa bahasa Inggris 'jagung'?", correct: "corn", wrongs: ["potato","carrot","onion","garlic","pepper","celery","beet","yam","radish","pea"] },
+    { q: "Apa bahasa Inggris 'bayam'?", correct: "spinach", wrongs: ["lettuce","cabbage","kale","broccoli","celery","parsley","mint","basil","cilantro","arugula"] },
+    { q: "Apa bahasa Inggris 'kubis'?", correct: "cabbage", wrongs: ["spinach","lettuce","kale","broccoli","celery","carrot","potato","onion","garlic","beet"] },
+    { q: "Apa bahasa Inggris 'brokoli'?", correct: "broccoli", wrongs: ["cabbage","spinach","lettuce","kale","celery","carrot","potato","onion","garlic","corn"] },
+    { q: "Apa bahasa Inggris 'terong'?", correct: "eggplant", wrongs: ["zucchini","pumpkin","squash","carrot","potato","tomato","pepper","corn","yam","beet"] },
+    { q: "Apa bahasa Inggris 'timun'?", correct: "cucumber", wrongs: ["zucchini","pumpkin","squash","carrot","potato","tomato","pepper","corn","yam","beet"] },
+  ]},
+  { name: "🐶 Hewan", questions: [
+    { q: "Apa bahasa Inggris 'kucing'?", correct: "cat", wrongs: ["dog","bird","fish","frog","wolf","bear","lion","tiger","fox","bat"] },
+    { q: "Apa bahasa Inggris 'anjing'?", correct: "dog", wrongs: ["cat","wolf","bear","lion","tiger","fox","pig","cow","goat","deer"] },
+    { q: "Apa bahasa Inggris 'kuda'?", correct: "horse", wrongs: ["cow","goat","sheep","deer","bear","wolf","pig","camel","donkey","zebra"] },
+    { q: "Apa bahasa Inggris 'sapi'?", correct: "cow", wrongs: ["goat","horse","sheep","deer","pig","bull","camel","donkey","buffalo","yak"] },
+    { q: "Apa bahasa Inggris 'ikan'?", correct: "fish", wrongs: ["bird","frog","snake","crab","worm","duck","shrimp","squid","whale","shark"] },
+    { q: "Apa bahasa Inggris 'burung'?", correct: "bird", wrongs: ["fish","frog","snake","duck","worm","crab","bat","owl","hawk","crow"] },
+    { q: "Apa bahasa Inggris 'gajah'?", correct: "elephant", wrongs: ["tiger","lion","panda","monkey","rhino","hippo","giraffe","zebra","buffalo","camel"] },
+    { q: "Apa bahasa Inggris 'harimau'?", correct: "tiger", wrongs: ["lion","leopard","panda","cheetah","jaguar","wolf","bear","lynx","puma","cougar"] },
+    { q: "Apa bahasa Inggris 'singa'?", correct: "lion", wrongs: ["tiger","leopard","cheetah","jaguar","wolf","bear","lynx","puma","panther","cougar"] },
+    { q: "Apa bahasa Inggris 'monyet'?", correct: "monkey", wrongs: ["gorilla","chimp","baboon","lemur","gibbon","orangutan","panda","koala","bear","fox"] },
+    { q: "Apa bahasa Inggris 'kelinci'?", correct: "rabbit", wrongs: ["hamster","squirrel","rat","mouse","fox","beaver","otter","ferret","mole","hare"] },
+    { q: "Apa bahasa Inggris 'buaya'?", correct: "crocodile", wrongs: ["alligator","lizard","gecko","iguana","turtle","snake","frog","toad","newt","salamander"] },
+    { q: "Apa bahasa Inggris 'ular'?", correct: "snake", wrongs: ["lizard","gecko","iguana","turtle","frog","toad","newt","salamander","worm","eel"] },
+    { q: "Apa bahasa Inggris 'katak'?", correct: "frog", wrongs: ["toad","newt","salamander","lizard","gecko","turtle","snake","worm","crab","shrimp"] },
+    { q: "Apa bahasa Inggris 'kupu-kupu'?", correct: "butterfly", wrongs: ["moth","dragonfly","bee","wasp","ant","fly","mosquito","beetle","cricket","grasshopper"] },
+    { q: "Apa bahasa Inggris 'lebah'?", correct: "bee", wrongs: ["wasp","ant","fly","moth","butterfly","mosquito","beetle","cricket","grasshopper","dragonfly"] },
+    { q: "Apa bahasa Inggris 'ayam'?", correct: "chicken", wrongs: ["duck","goose","turkey","pigeon","parrot","crow","owl","hawk","eagle","dove"] },
+    { q: "Apa bahasa Inggris 'bebek'?", correct: "duck", wrongs: ["goose","turkey","chicken","pigeon","parrot","crow","owl","hawk","eagle","swan"] },
+    { q: "Apa bahasa Inggris 'kambing'?", correct: "goat", wrongs: ["sheep","cow","horse","pig","deer","buffalo","camel","donkey","llama","alpaca"] },
+    { q: "Apa bahasa Inggris 'domba'?", correct: "sheep", wrongs: ["goat","cow","horse","pig","deer","buffalo","camel","donkey","llama","alpaca"] },
+  ]},
+  { name: "🌈 Warna", questions: [
+    { q: "Apa bahasa Inggris 'merah'?", correct: "red", wrongs: ["blue","green","yellow","pink","orange","purple","brown","black","white","gray"] },
+    { q: "Apa bahasa Inggris 'biru'?", correct: "blue", wrongs: ["red","green","purple","cyan","navy","teal","indigo","violet","gray","black"] },
+    { q: "Apa bahasa Inggris 'hijau'?", correct: "green", wrongs: ["blue","red","yellow","teal","olive","lime","cyan","mint","jade","sage"] },
+    { q: "Apa bahasa Inggris 'kuning'?", correct: "yellow", wrongs: ["orange","gold","green","red","pink","white","cream","beige","lime","tan"] },
+    { q: "Apa bahasa Inggris 'ungu'?", correct: "purple", wrongs: ["violet","pink","blue","red","indigo","maroon","magenta","plum","lavender","lilac"] },
+    { q: "Apa bahasa Inggris 'oranye'?", correct: "orange", wrongs: ["yellow","red","gold","amber","peach","coral","salmon","rust","tan","bronze"] },
+    { q: "Apa bahasa Inggris 'hitam'?", correct: "black", wrongs: ["white","gray","dark","brown","navy","ebony","charcoal","slate","onyx","jet"] },
+    { q: "Apa bahasa Inggris 'putih'?", correct: "white", wrongs: ["black","gray","cream","ivory","silver","light","beige","pearl","snow","chalk"] },
+    { q: "Apa bahasa Inggris 'cokelat'?", correct: "brown", wrongs: ["tan","beige","khaki","gray","black","red","orange","gold","bronze","copper"] },
+    { q: "Apa bahasa Inggris 'abu-abu'?", correct: "gray", wrongs: ["black","white","silver","brown","navy","slate","charcoal","ash","stone","lead"] },
+    { q: "Apa bahasa Inggris 'merah muda'?", correct: "pink", wrongs: ["red","purple","orange","violet","magenta","rose","salmon","coral","peach","lavender"] },
+    { q: "Apa bahasa Inggris 'emas'?", correct: "gold", wrongs: ["yellow","silver","bronze","copper","orange","tan","amber","beige","cream","ivory"] },
+    { q: "Apa bahasa Inggris 'biru tua'?", correct: "navy", wrongs: ["blue","teal","indigo","violet","purple","cyan","dark","black","slate","cobalt"] },
+    { q: "Apa bahasa Inggris 'hijau muda'?", correct: "lime", wrongs: ["green","olive","teal","mint","cyan","yellow","jade","sage","emerald","forest"] },
+    { q: "Apa bahasa Inggris 'perak'?", correct: "silver", wrongs: ["gold","gray","white","steel","chrome","platinum","tin","zinc","nickel","lead"] },
+  ]},
+  { name: "🔢 Angka & Hitungan", questions: [
+    { q: "Angka '1' dalam bahasa Inggris?", correct: "one", wrongs: ["two","three","four","five","six","seven","eight","nine","ten","zero"] },
+    { q: "Angka '2' dalam bahasa Inggris?", correct: "two", wrongs: ["one","three","four","five","six","seven","eight","nine","ten","twelve"] },
+    { q: "Angka '3' dalam bahasa Inggris?", correct: "three", wrongs: ["one","two","four","five","six","seven","eight","nine","ten","thirteen"] },
+    { q: "Angka '4' dalam bahasa Inggris?", correct: "four", wrongs: ["one","two","three","five","six","seven","eight","nine","ten","fourteen"] },
+    { q: "Angka '5' dalam bahasa Inggris?", correct: "five", wrongs: ["four","six","nine","three","seven","eight","ten","eleven","fifteen","fifty"] },
+    { q: "Angka '6' dalam bahasa Inggris?", correct: "six", wrongs: ["five","seven","eight","nine","ten","sixteen","sixty","sex","sic","sich"] },
+    { q: "Angka '7' dalam bahasa Inggris?", correct: "seven", wrongs: ["six","eight","nine","five","four","eleven","seventeen","seventy","even","sever"] },
+    { q: "Angka '8' dalam bahasa Inggris?", correct: "eight", wrongs: ["six","seven","nine","five","four","eighteen","eighty","ate","ait","eit"] },
+    { q: "Angka '9' dalam bahasa Inggris?", correct: "nine", wrongs: ["six","seven","eight","five","four","nineteen","ninety","nein","mine","dine"] },
+    { q: "Angka '10' dalam bahasa Inggris?", correct: "ten", wrongs: ["nine","eight","eleven","twelve","seven","six","twenty","ten","tin","tan"] },
+    { q: "Angka '11' dalam bahasa Inggris?", correct: "eleven", wrongs: ["twelve","thirteen","ten","nine","seventeen","eighteen","twenty","nine","eight","fifteen"] },
+    { q: "Angka '12' dalam bahasa Inggris?", correct: "twelve", wrongs: ["eleven","thirteen","ten","nine","seventeen","eighteen","twenty","fifteen","sixteen","fourteen"] },
+    { q: "Angka '15' dalam bahasa Inggris?", correct: "fifteen", wrongs: ["twelve","thirteen","sixteen","eleven","fourteen","seventeen","fifty","five","ten","twenty"] },
+    { q: "Angka '20' dalam bahasa Inggris?", correct: "twenty", wrongs: ["twelve","thirty","eleven","seventeen","nineteen","eighteen","two","ten","twelve","forty"] },
+    { q: "Angka '50' dalam bahasa Inggris?", correct: "fifty", wrongs: ["fifteen","forty","sixty","seventy","eighty","ninety","hundred","five","ten","thirty"] },
+    { q: "Angka '100' dalam bahasa Inggris?", correct: "hundred", wrongs: ["thousand","million","fifty","ninety","dozen","score","century","grand","lots","many"] },
+    { q: "Urutan ke-1 dalam bahasa Inggris?", correct: "first", wrongs: ["second","third","fourth","fifth","sixth","last","once","primary","fore","lead"] },
+    { q: "Urutan ke-2 dalam bahasa Inggris?", correct: "second", wrongs: ["first","third","fourth","fifth","sixth","last","next","other","two","twin"] },
+    { q: "Urutan ke-3 dalam bahasa Inggris?", correct: "third", wrongs: ["first","second","fourth","fifth","sixth","last","next","three","trio","triple"] },
+    { q: "Urutan ke-4 dalam bahasa Inggris?", correct: "fourth", wrongs: ["first","second","third","fifth","sixth","last","four","quad","quarter","fore"] },
+  ]},
+  { name: "☀️ Cuaca & Alam", questions: [
+    { q: "Apa bahasa Inggris 'hujan'?", correct: "rain", wrongs: ["wind","snow","fog","storm","hail","cloud","mist","sleet","drizzle","shower"] },
+    { q: "Apa bahasa Inggris 'angin'?", correct: "wind", wrongs: ["rain","snow","storm","cloud","fog","hail","breeze","gust","gale","squall"] },
+    { q: "Apa bahasa Inggris 'salju'?", correct: "snow", wrongs: ["rain","hail","ice","frost","sleet","wind","blizzard","flake","slush","powder"] },
+    { q: "Apa bahasa Inggris 'panas'?", correct: "hot", wrongs: ["cold","warm","cool","humid","dry","mild","torrid","arid","sultry","balmy"] },
+    { q: "Apa bahasa Inggris 'dingin'?", correct: "cold", wrongs: ["hot","cool","warm","icy","chilly","dry","frigid","frosty","arctic","nippy"] },
+    { q: "Apa bahasa Inggris 'awan'?", correct: "cloud", wrongs: ["sky","fog","mist","haze","storm","rain","cumulus","stratus","nimbus","cirrus"] },
+    { q: "Apa bahasa Inggris 'cerah'?", correct: "sunny", wrongs: ["cloudy","rainy","windy","foggy","stormy","clear","bright","fair","fine","warm"] },
+    { q: "Apa bahasa Inggris 'banjir'?", correct: "flood", wrongs: ["storm","rain","flow","river","wave","surge","tide","overflow","deluge","inundation"] },
+    { q: "Apa bahasa Inggris 'petir'?", correct: "thunder", wrongs: ["lightning","storm","rain","wind","cloud","fog","noise","rumble","crack","boom"] },
+    { q: "Apa bahasa Inggris 'kilat'?", correct: "lightning", wrongs: ["thunder","storm","spark","flash","bolt","flare","gleam","glow","shine","blaze"] },
+    { q: "Apa bahasa Inggris 'gunung'?", correct: "mountain", wrongs: ["hill","valley","cliff","ridge","peak","volcano","plateau","canyon","mesa","butte"] },
+    { q: "Apa bahasa Inggris 'laut'?", correct: "sea", wrongs: ["ocean","river","lake","pond","bay","gulf","strait","channel","lagoon","inlet"] },
+    { q: "Apa bahasa Inggris 'sungai'?", correct: "river", wrongs: ["sea","ocean","lake","pond","bay","stream","creek","brook","canal","channel"] },
+    { q: "Apa bahasa Inggris 'hutan'?", correct: "forest", wrongs: ["jungle","woods","park","grove","orchard","garden","meadow","field","plain","savanna"] },
+    { q: "Apa bahasa Inggris 'pantai'?", correct: "beach", wrongs: ["coast","shore","cliff","bay","cove","harbor","reef","lagoon","island","cape"] },
+  ]},
+  { name: "🏠 Rumah & Benda", questions: [
+    { q: "Apa bahasa Inggris 'dapur'?", correct: "kitchen", wrongs: ["bedroom","bathroom","garden","garage","office","balcony","living room","dining room","study","pantry"] },
+    { q: "Apa bahasa Inggris 'kamar tidur'?", correct: "bedroom", wrongs: ["kitchen","bathroom","living room","office","balcony","garden","garage","attic","cellar","nursery"] },
+    { q: "Apa bahasa Inggris 'pintu'?", correct: "door", wrongs: ["window","wall","roof","floor","gate","fence","arch","frame","panel","hatch"] },
+    { q: "Apa bahasa Inggris 'jendela'?", correct: "window", wrongs: ["door","wall","roof","fence","gate","mirror","screen","shutter","blind","curtain"] },
+    { q: "Apa bahasa Inggris 'kursi'?", correct: "chair", wrongs: ["table","sofa","bench","stool","desk","couch","throne","rocker","recliner","ottoman"] },
+    { q: "Apa bahasa Inggris 'meja'?", correct: "table", wrongs: ["chair","desk","shelf","bench","counter","board","stand","tray","surface","platform"] },
+    { q: "Apa bahasa Inggris 'atap'?", correct: "roof", wrongs: ["floor","wall","ceiling","door","window","fence","tile","beam","rafter","gutter"] },
+    { q: "Apa bahasa Inggris 'tangga'?", correct: "stairs", wrongs: ["ladder","door","lift","path","ramp","steps","escalator","elevator","slope","bridge"] },
+    { q: "Apa bahasa Inggris 'lampu'?", correct: "lamp", wrongs: ["light","bulb","torch","candle","lantern","beacon","flare","glow","shine","flash"] },
+    { q: "Apa bahasa Inggris 'cermin'?", correct: "mirror", wrongs: ["glass","window","lens","screen","panel","frame","reflector","polish","crystal","surface"] },
+    { q: "Apa bahasa Inggris 'kasur'?", correct: "mattress", wrongs: ["pillow","blanket","sheet","bed","cushion","pad","futon","hammock","cot","bunk"] },
+    { q: "Apa bahasa Inggris 'bantal'?", correct: "pillow", wrongs: ["mattress","blanket","sheet","cushion","pad","bolster","headrest","support","wedge","block"] },
+    { q: "Apa bahasa Inggris 'selimut'?", correct: "blanket", wrongs: ["pillow","mattress","sheet","cover","quilt","duvet","comforter","wrap","throw","rug"] },
+    { q: "Apa bahasa Inggris 'lemari'?", correct: "wardrobe", wrongs: ["cabinet","shelf","drawer","closet","cupboard","chest","locker","safe","rack","bin"] },
+    { q: "Apa bahasa Inggris 'kulkas'?", correct: "refrigerator", wrongs: ["freezer","oven","microwave","stove","dishwasher","blender","toaster","kettle","cooker","heater"] },
+    { q: "Apa bahasa Inggris 'kompor'?", correct: "stove", wrongs: ["oven","microwave","refrigerator","dishwasher","blender","toaster","kettle","grill","range","burner"] },
+    { q: "Apa bahasa Inggris 'panci'?", correct: "pot", wrongs: ["pan","bowl","plate","cup","mug","jar","can","tin","tray","basin"] },
+    { q: "Apa bahasa Inggris 'pisau'?", correct: "knife", wrongs: ["fork","spoon","scissors","blade","sword","dagger","razor","cutter","shear","axe"] },
+    { q: "Apa bahasa Inggris 'garpu'?", correct: "fork", wrongs: ["knife","spoon","chopstick","tong","spatula","ladle","whisk","grater","peeler","skewer"] },
+    { q: "Apa bahasa Inggris 'sendok'?", correct: "spoon", wrongs: ["fork","knife","chopstick","spatula","ladle","tong","whisk","grater","dipper","scoop"] },
+  ]},
+  { name: "👗 Pakaian", questions: [
+    { q: "Apa bahasa Inggris 'baju'?", correct: "shirt", wrongs: ["pants","dress","skirt","jacket","coat","blouse","top","vest","sweater","hoodie"] },
+    { q: "Apa bahasa Inggris 'celana'?", correct: "pants", wrongs: ["shirt","shorts","jeans","skirt","leggings","tights","trousers","chinos","joggers","slacks"] },
+    { q: "Apa bahasa Inggris 'sepatu'?", correct: "shoes", wrongs: ["boots","sandals","slippers","heels","sneakers","loafers","flats","pumps","clogs","mules"] },
+    { q: "Apa bahasa Inggris 'kaos kaki'?", correct: "socks", wrongs: ["shoes","boots","sandals","stockings","tights","leggings","anklets","insoles","slippers","heels"] },
+    { q: "Apa bahasa Inggris 'topi'?", correct: "hat", wrongs: ["cap","helmet","hood","beret","turban","crown","headband","veil","scarf","beanie"] },
+    { q: "Apa bahasa Inggris 'jaket'?", correct: "jacket", wrongs: ["coat","vest","blazer","cardigan","sweater","hoodie","anorak","parka","windbreaker","pullover"] },
+    { q: "Apa bahasa Inggris 'gaun'?", correct: "dress", wrongs: ["skirt","blouse","gown","frock","robe","shift","sundress","jumpsuit","romper","tunic"] },
+    { q: "Apa bahasa Inggris 'rok'?", correct: "skirt", wrongs: ["dress","pants","shorts","leggings","tights","kilt","wrap","sarong","tutu","petticoat"] },
+    { q: "Apa bahasa Inggris 'dasi'?", correct: "tie", wrongs: ["belt","scarf","bow","ribbon","band","strap","cord","lace","rope","knot"] },
+    { q: "Apa bahasa Inggris 'sarung tangan'?", correct: "gloves", wrongs: ["mittens","socks","boots","hat","scarf","belt","ring","bracelet","watch","band"] },
+  ]},
+  { name: "🍽️ Makanan", questions: [
+    { q: "Apa bahasa Inggris 'nasi'?", correct: "rice", wrongs: ["bread","pasta","noodle","wheat","oat","corn","barley","rye","millet","quinoa"] },
+    { q: "Apa bahasa Inggris 'roti'?", correct: "bread", wrongs: ["cake","cookie","rice","pasta","noodle","cracker","biscuit","roll","bun","toast"] },
+    { q: "Apa bahasa Inggris 'daging'?", correct: "meat", wrongs: ["fish","chicken","pork","beef","lamb","veal","duck","turkey","shrimp","crab"] },
+    { q: "Apa bahasa Inggris 'telur'?", correct: "egg", wrongs: ["milk","butter","cheese","cream","yogurt","honey","jam","sugar","salt","flour"] },
+    { q: "Apa bahasa Inggris 'susu'?", correct: "milk", wrongs: ["water","juice","tea","coffee","soda","egg","butter","cheese","cream","yogurt"] },
+    { q: "Apa bahasa Inggris 'air'?", correct: "water", wrongs: ["milk","juice","tea","coffee","soda","wine","beer","soup","broth","syrup"] },
+    { q: "Apa bahasa Inggris 'gula'?", correct: "sugar", wrongs: ["salt","pepper","honey","syrup","jam","flour","butter","cream","milk","egg"] },
+    { q: "Apa bahasa Inggris 'garam'?", correct: "salt", wrongs: ["sugar","pepper","honey","spice","herb","sauce","vinegar","oil","butter","lard"] },
+    { q: "Apa bahasa Inggris 'minyak'?", correct: "oil", wrongs: ["butter","lard","fat","grease","cream","wax","gel","liquid","water","juice"] },
+    { q: "Apa bahasa Inggris 'sup'?", correct: "soup", wrongs: ["stew","broth","porridge","gruel","gravy","sauce","juice","drink","beverage","smoothie"] },
+    { q: "Apa bahasa Inggris 'kue'?", correct: "cake", wrongs: ["cookie","bread","pie","tart","pudding","muffin","brownie","donut","pastry","biscuit"] },
+    { q: "Apa bahasa Inggris 'es krim'?", correct: "ice cream", wrongs: ["sorbet","gelato","yogurt","pudding","mousse","custard","cake","pie","tart","sundae"] },
+    { q: "Apa bahasa Inggris 'mie'?", correct: "noodle", wrongs: ["pasta","rice","bread","spaghetti","vermicelli","ramen","udon","soba","fettuccine","tagliatelle"] },
+    { q: "Apa bahasa Inggris 'kopi'?", correct: "coffee", wrongs: ["tea","milk","juice","soda","water","cocoa","chocolate","espresso","latte","cappuccino"] },
+    { q: "Apa bahasa Inggris 'teh'?", correct: "tea", wrongs: ["coffee","milk","juice","soda","water","herbal","green","black","chai","oolong"] },
+  ]},
+  { name: "🏫 Sekolah", questions: [
+    { q: "Apa bahasa Inggris 'buku'?", correct: "book", wrongs: ["notebook","pencil","pen","paper","ruler","eraser","scissors","glue","tape","marker"] },
+    { q: "Apa bahasa Inggris 'pensil'?", correct: "pencil", wrongs: ["pen","crayon","marker","chalk","brush","stick","rod","line","draw","write"] },
+    { q: "Apa bahasa Inggris 'pena'?", correct: "pen", wrongs: ["pencil","marker","crayon","chalk","brush","stylus","quill","ink","write","draw"] },
+    { q: "Apa bahasa Inggris 'penghapus'?", correct: "eraser", wrongs: ["pencil","pen","ruler","sharpener","glue","tape","clip","pin","staple","rubber"] },
+    { q: "Apa bahasa Inggris 'penggaris'?", correct: "ruler", wrongs: ["pencil","pen","eraser","compass","protractor","scale","measure","stick","bar","tool"] },
+    { q: "Apa bahasa Inggris 'tas'?", correct: "bag", wrongs: ["box","case","pack","pouch","sack","purse","wallet","backpack","tote","satchel"] },
+    { q: "Apa bahasa Inggris 'papan tulis'?", correct: "blackboard", wrongs: ["whiteboard","chalkboard","screen","board","panel","wall","desk","table","surface","display"] },
+    { q: "Apa bahasa Inggris 'guru'?", correct: "teacher", wrongs: ["student","professor","lecturer","tutor","coach","mentor","trainer","instructor","educator","principal"] },
+    { q: "Apa bahasa Inggris 'murid'?", correct: "student", wrongs: ["teacher","professor","lecturer","tutor","pupil","learner","scholar","trainee","apprentice","graduate"] },
+    { q: "Apa bahasa Inggris 'kelas'?", correct: "classroom", wrongs: ["school","room","hall","library","lab","office","gym","cafeteria","canteen","auditorium"] },
+    { q: "Apa bahasa Inggris 'ujian'?", correct: "exam", wrongs: ["test","quiz","homework","project","assignment","report","essay","paper","task","exercise"] },
+    { q: "Apa bahasa Inggris 'perpustakaan'?", correct: "library", wrongs: ["school","classroom","lab","office","gym","cafeteria","canteen","hall","museum","archive"] },
+  ]},
+  { name: "🚗 Kendaraan", questions: [
+    { q: "Apa bahasa Inggris 'mobil'?", correct: "car", wrongs: ["bus","truck","van","taxi","bike","train","plane","boat","ship","motorcycle"] },
+    { q: "Apa bahasa Inggris 'motor'?", correct: "motorcycle", wrongs: ["car","bus","truck","van","taxi","bike","scooter","moped","bicycle","tricycle"] },
+    { q: "Apa bahasa Inggris 'sepeda'?", correct: "bicycle", wrongs: ["motorcycle","scooter","moped","car","bus","truck","skateboard","scooter","tricycle","unicycle"] },
+    { q: "Apa bahasa Inggris 'bus'?", correct: "bus", wrongs: ["car","truck","van","taxi","train","tram","subway","minibus","coach","shuttle"] },
+    { q: "Apa bahasa Inggris 'kereta'?", correct: "train", wrongs: ["bus","car","tram","subway","metro","rail","monorail","tram","trolley","shuttle"] },
+    { q: "Apa bahasa Inggris 'pesawat'?", correct: "plane", wrongs: ["helicopter","jet","rocket","spaceship","glider","drone","balloon","airship","zeppelin","blimp"] },
+    { q: "Apa bahasa Inggris 'kapal'?", correct: "ship", wrongs: ["boat","ferry","yacht","submarine","canoe","kayak","raft","barge","vessel","liner"] },
+    { q: "Apa bahasa Inggris 'taksi'?", correct: "taxi", wrongs: ["car","bus","van","cab","uber","ride","limo","shuttle","rental","hire"] },
+    { q: "Apa bahasa Inggris 'truk'?", correct: "truck", wrongs: ["car","bus","van","lorry","tanker","dump","pickup","trailer","semi","rig"] },
+    { q: "Apa bahasa Inggris 'helikopter'?", correct: "helicopter", wrongs: ["plane","jet","drone","rocket","glider","balloon","airship","blimp","zeppelin","dirigible"] },
+  ]},
+];
+
+let score=0,timer=60,gameActive=false,topicIdx=0,currentQ=null,correctFrog=-1;
+let timerInterval,frogTimers=[],usedQs=[];
+
+function shuffle(arr){return [...arr].sort(()=>Math.random()-0.5);}
+
+function getQuestion(){
+  const topic=TOPICS[topicIdx];
+  if(usedQs.length>=topic.questions.length)usedQs=[];
+  const available=topic.questions.filter((_,i)=>!usedQs.includes(i));
+  const idx=topic.questions.indexOf(available[Math.floor(Math.random()*available.length)]);
+  usedQs.push(idx);
+  return topic.questions[idx];
+}
+
+function startGame(){
+  document.getElementById('waf-overlay').style.display='none';
+  score=0;timer=60;gameActive=true;usedQs=[];
+  document.getElementById('waf-score').textContent=0;
+  document.getElementById('waf-timer').textContent=60;
+  document.getElementById('waf-timer').style.color='';
+  document.getElementById('waf-progress-bar').style.width='100%';
+  frogTimers.forEach(clearTimeout);frogTimers=[];
+  for(let i=0;i<6;i++){document.getElementById('f'+i).className='frog';}
+  nextQuestion();
+  timerInterval=setInterval(()=>{
+    timer--;
+    document.getElementById('waf-timer').textContent=timer;
+    document.getElementById('waf-progress-bar').style.width=(timer/60*100)+'%';
+    if(timer<=10)document.getElementById('waf-timer').style.color='#e74c3c';
+    if(timer<=0)endGame();
+  },1000);
+}
+
+function nextQuestion(){
+  if(!gameActive)return;
+  currentQ=getQuestion();
+  const topic=TOPICS[topicIdx];
+  document.getElementById('waf-qtopic').textContent=topic.name;
+  document.getElementById('waf-qtext').textContent=currentQ.q;
+  document.getElementById('waf-hint').textContent='';
+  document.getElementById('waf-topicbadge').textContent=topic.name;
+  const wrongs=shuffle(currentQ.wrongs).slice(0,5);
+  const options=shuffle([currentQ.correct,...wrongs]);
+  const frogsToShow=shuffle([0,1,2,3,4,5]).slice(0,6);
+  correctFrog=frogsToShow[Math.floor(Math.random()*frogsToShow.length)];
+  for(let i=0;i<6;i++){document.getElementById('f'+i).className='frog';document.getElementById('fw'+i).textContent='';}
+  let optIdx=0;
+  const wrongsAvail=options.filter(o=>o!==currentQ.correct);
+  frogsToShow.forEach(fi=>{
+    const fw=document.getElementById('fw'+fi);
+    if(fi===correctFrog)fw.textContent=currentQ.correct;
+    else{fw.textContent=wrongsAvail[optIdx++]||wrongs[0];}
+    const delay=Math.random()*600+200;
+    frogTimers.push(setTimeout(()=>{
+      if(!gameActive)return;
+      const f=document.getElementById('f'+fi);
+      if(f.className==='frog')f.classList.add('up');
+    },delay));
+  });
+  const hideTime=3500+Math.random()*1000;
+  frogTimers.push(setTimeout(()=>{
+    if(!gameActive)return;
+    frogsToShow.forEach(fi=>{
+      const f=document.getElementById('f'+fi);
+      if(f.className==='frog up'){f.className='frog';}
+    });
+    setTimeout(()=>{if(gameActive)nextQuestion();},400);
+  },hideTime));
+}
+
+function whack(idx){
+  if(!gameActive)return;
+  const f=document.getElementById('f'+idx);
+  if(!f.classList.contains('up'))return;
+  frogTimers.forEach(clearTimeout);frogTimers=[];
+  const isCorrect=(idx===correctFrog);
+  if(isCorrect){
+    score+=10;document.getElementById('waf-score').textContent=score;
+    f.classList.remove('up');f.classList.add('hit','correct');
+    showFeedback('✅ +10',true);
+    spawnStars(f);
+    document.getElementById('waf-hint').textContent='✓ '+currentQ.correct+' = benar!';
+  } else {
+    score=Math.max(0,score-3);document.getElementById('waf-score').textContent=score;
+    f.classList.remove('up');f.classList.add('hit','wrong');
+    showFeedback('❌ -3',false);
+    document.getElementById('waf-hint').textContent='✗ Salah! Jawaban: '+currentQ.correct;
+  }
+  setTimeout(()=>{
+    f.className='frog';
+    for(let i=0;i<6;i++){const fi=document.getElementById('f'+i);if(fi!==f)fi.className='frog';}
+    setTimeout(()=>{if(gameActive)nextQuestion();},300);
+  },500);
+}
+
+function showFeedback(text,good){
+  const el=document.getElementById('waf-feedback');
+  el.textContent=text;el.style.color=good?'#27ae60':'#e74c3c';
+  el.className='show';setTimeout(()=>el.className='',700);
+}
+
+function spawnStars(frogEl){
+  const stars=['⭐','✨','💫','🌟'];
+  for(let i=0;i<3;i++){
+    const s=document.createElement('div');s.className='star-sparkle';
+    s.textContent=stars[Math.floor(Math.random()*stars.length)];
+    const rect=frogEl.getBoundingClientRect();
+    s.style.left=(rect.left+Math.random()*60-10)+'px';
+    s.style.top=(rect.top+Math.random()*30)+'px';
+    document.body.appendChild(s);setTimeout(()=>s.remove(),600);
+  }
+}
+
+function endGame(){
+  gameActive=false;clearInterval(timerInterval);
+  frogTimers.forEach(clearTimeout);
+  for(let i=0;i<6;i++)document.getElementById('f'+i).className='frog';
+  const ov=document.getElementById('waf-overlay');
+  ov.style.display='flex';
+  const grade=score>=80?'🏆 Luar Biasa!':score>=50?'🥇 Bagus Sekali!':score>=20?'👍 Terus Berlatih!':'💪 Ayo Coba Lagi!';
+  ov.innerHTML=`<div class="overlay-box">
+    <div style="font-size:48px;margin-bottom:8px">🐸</div>
+    <div class="overlay-title">Waktu Habis!</div>
+    <div class="overlay-score">${score}</div>
+    <div style="font-size:16px;color:#666;margin:8px 0">${grade}</div>
+    <div class="overlay-sub">Topik: ${TOPICS[topicIdx].name}</div>
+    <button class="btn-big" onclick="startGame()">🔄 Main Lagi</button>
+    <button class="btn-big gray" onclick="changeLevel()">📚 Ganti Topik</button>
+  </div>`;
+}
+
+function changeLevel(){
+  gameActive=false;clearInterval(timerInterval);frogTimers.forEach(clearTimeout);
+  const ov=document.getElementById('waf-overlay');ov.style.display='flex';
+  let html='<div class="overlay-box" style="max-width:340px"><div class="overlay-title" style="margin-bottom:12px">Pilih Topik 📚</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  TOPICS.forEach((t,i)=>{html+=`<button class="btn-big" style="background:${i===topicIdx?'#f0c040':'#f0f0f0'};font-size:12px;padding:10px 8px" onclick="selectTopic(${i})">${t.name}</button>`;});
+  html+='</div></div>';ov.innerHTML=html;
+}
+
+function selectTopic(idx){topicIdx=idx;usedQs=[];startGame();}
+
+document.addEventListener('mousemove',e=>{
+  let h=document.getElementById('waf-hammer');
+  if(!h){h=document.createElement('div');h.id='waf-hammer';h.className='hammer-cursor';h.textContent='🔨';document.body.appendChild(h);}
+  h.style.left=e.clientX+'px';h.style.top=e.clientY+'px';
+});
+document.addEventListener('mousedown',()=>{
+  const h=document.getElementById('waf-hammer');if(h){h.classList.add('swing');setTimeout(()=>h.classList.remove('swing'),150);}
+});
+</script>
+</body>
+</html>
+
+Credite BY : Mumtaz Aufa Pradita

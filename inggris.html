@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>English Fun! - Belajar Bahasa Inggris</title>
+  <style>
+    /* ── Google Fonts embedded as base64 fallback → use system fonts ── */
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --coral:  #FF6B6B;
+      --purple: #A855F7;
+      --mint:   #4ECDC4;
+      --orange: #FF9F43;
+      --pink:   #FF6CAB;
+      --dark:   #2C3E50;
+      --green:  #10B981;
+    }
+
+    body {
+      font-family: 'Nunito', 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(180deg,#87CEEB 0%,#B0E0E6 35%,#90EE90 65%,#7ED957 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Clouds ── */
+    .clouds { position:fixed;top:0;left:0;right:0;height:120px;pointer-events:none;z-index:0; }
+    .cloud {
+      position:absolute; background:white; border-radius:50px; opacity:.85;
+      animation:floatCloud linear infinite;
+    }
+    .cloud::before,.cloud::after { content:'';position:absolute;background:white;border-radius:50%; }
+    .c1{width:100px;height:35px;top:20px;animation-duration:25s;animation-delay:-10s}
+    .c1::before{width:50px;height:50px;top:-25px;left:10px}
+    .c1::after{width:35px;height:35px;top:-18px;left:45px}
+    .c2{width:130px;height:40px;top:50px;animation-duration:35s;animation-delay:-5s}
+    .c2::before{width:60px;height:60px;top:-30px;left:15px}
+    .c2::after{width:45px;height:45px;top:-22px;left:60px}
+    .c3{width:80px;height:28px;top:15px;animation-duration:20s;animation-delay:-15s}
+    .c3::before{width:40px;height:40px;top:-20px;left:8px}
+    .c3::after{width:28px;height:28px;top:-14px;left:36px}
+    @keyframes floatCloud{from{left:-200px}to{left:110%}}
+
+    /* ── Layout ── */
+    .game-wrapper{position:relative;z-index:1;max-width:700px;margin:0 auto;padding:16px 16px 40px}
+
+    /* ── Header ── */
+    .header{text-align:center;margin-bottom:16px}
+    .game-title{
+      font-family:'Fredoka One',cursive;font-size:36px;color:#fff;
+      text-shadow:3px 3px 0 #FF6B6B,5px 5px 0 rgba(0,0,0,.15);
+      letter-spacing:1px;animation:bounce 2s ease-in-out infinite;
+    }
+    @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    .subtitle{font-size:14px;color:#fff;font-weight:700;text-shadow:1px 1px 3px rgba(0,0,0,.2)}
+
+    /* ── HUD ── */
+    .score-bar{
+      display:flex;justify-content:space-between;align-items:center;
+      background:rgba(255,255,255,.9);border-radius:50px;padding:8px 20px;
+      margin-bottom:14px;box-shadow:0 4px 15px rgba(0,0,0,.1);
+    }
+    .score-item{display:flex;align-items:center;gap:6px;font-weight:800;font-size:16px}
+    .lives{color:var(--coral)} .score-num{color:var(--purple)} .streak{color:var(--orange)}
+
+    /* ── Menu ── */
+    .menu-screen{background:rgba(255,255,255,.95);border-radius:28px;padding:28px 20px;
+      box-shadow:0 8px 32px rgba(0,0,0,.15);text-align:center}
+    .menu-mascot{font-size:80px;line-height:1;margin-bottom:12px;display:block;
+      animation:wiggle 1.5s ease-in-out infinite}
+    @keyframes wiggle{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+    .menu-title{font-family:'Fredoka One',cursive;font-size:26px;color:var(--purple);margin-bottom:6px}
+    .menu-desc{font-size:14px;color:#666;margin-bottom:24px;line-height:1.5}
+    .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+    .mode-btn{
+      background:white;border:3px solid transparent;border-radius:20px;
+      padding:16px 12px;cursor:pointer;transition:all .2s;text-align:center;
+      box-shadow:0 4px 12px rgba(0,0,0,.08);
+    }
+    .mode-btn:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.15)}
+    .mode-btn.m-vocab{border-color:var(--mint)}
+    .mode-btn.m-quiz{border-color:var(--orange)}
+    .mode-btn.m-spell{border-color:var(--pink)}
+    .mode-btn.m-match{border-color:var(--purple)}
+    .mode-emoji{font-size:36px;display:block;margin-bottom:6px}
+    .mode-name{font-family:'Fredoka One',cursive;font-size:16px;color:var(--dark)}
+    .mode-sub{font-size:11px;color:#999;margin-top:2px}
+
+    /* ── Game card ── */
+    .game-screen{display:none}
+    .game-card{
+      background:rgba(255,255,255,.97);border-radius:28px;padding:24px 20px;
+      box-shadow:0 8px 32px rgba(0,0,0,.15);text-align:center;margin-bottom:14px;
+    }
+    .question-label{font-size:12px;font-weight:700;color:#999;text-transform:uppercase;
+      letter-spacing:1px;margin-bottom:10px}
+
+    /* Vocab */
+    .vocab-img{font-size:88px;line-height:1;margin:8px 0;display:block;
+      animation:pop .4s cubic-bezier(.175,.885,.32,1.275)}
+    /* SVG picture */
+    .vocab-svg{width:120px;height:120px;margin:8px auto;display:block;
+      animation:pop .4s cubic-bezier(.175,.885,.32,1.275)}
+    @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+    .vocab-word{font-family:'Fredoka One',cursive;font-size:40px;color:var(--purple);
+      letter-spacing:2px;margin:6px 0}
+    .vocab-phonetic{font-size:15px;color:#aaa;margin-bottom:4px}
+
+    /* Options */
+    .options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+    .opt-btn{
+      background:white;border:3px solid #E0E0E0;border-radius:16px;
+      padding:14px 10px;font-family:'Nunito','Segoe UI',sans-serif;
+      font-size:14px;font-weight:700;color:var(--dark);cursor:pointer;transition:all .15s;
+    }
+    .opt-btn:hover{border-color:var(--purple);transform:scale(1.03)}
+    .opt-btn.correct{background:#D1FAE5;border-color:var(--green);color:#065F46}
+    .opt-btn.wrong{background:#FEE2E2;border-color:var(--coral);color:#991B1B}
+    .opt-btn:disabled{cursor:default;transform:none}
+    .opt-emoji{font-size:20px;display:block;margin-bottom:4px}
+    .opt-svg{width:36px;height:36px;display:block;margin:0 auto 4px}
+
+    /* Spelling */
+    .spell-question{font-size:88px;margin:8px 0;display:block}
+    .spell-svg{width:110px;height:110px;margin:8px auto;display:block}
+    .spell-hint{font-size:14px;color:#888;margin-bottom:12px}
+    .letter-display{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:12px 0}
+    .letter-box{
+      width:40px;height:48px;border-bottom:3px solid var(--purple);
+      display:flex;align-items:center;justify-content:center;
+      font-family:'Fredoka One',cursive;font-size:26px;color:var(--purple);transition:all .2s;
+    }
+    .letter-box.filled{background:#F3E8FF;border-radius:8px;border-color:#A855F7}
+    .letter-choices{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px}
+    .letter-btn{
+      width:44px;height:44px;border-radius:12px;border:2px solid #E0E0E0;
+      background:white;font-family:'Fredoka One',cursive;font-size:22px;
+      cursor:pointer;transition:all .15s;color:var(--dark);
+    }
+    .letter-btn:hover{border-color:var(--purple);background:#F3E8FF;transform:scale(1.1)}
+    .letter-btn:disabled{opacity:.3;cursor:default;transform:none}
+    .clear-btn{
+      margin-top:12px;background:none;border:2px solid #E0E0E0;border-radius:50px;
+      padding:8px 20px;font-family:'Nunito',sans-serif;font-weight:700;
+      font-size:14px;cursor:pointer;color:#888;
+    }
+    .clear-btn:hover{border-color:var(--coral);color:var(--coral)}
+
+    /* Matching */
+    .match-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .match-col{display:flex;flex-direction:column;gap:8px}
+    .match-item{
+      background:white;border:3px solid #E0E0E0;border-radius:14px;
+      padding:10px 8px;cursor:pointer;transition:all .15s;font-weight:700;text-align:center;
+    }
+    .match-item:hover{border-color:var(--mint);transform:scale(1.03)}
+    .match-item.selected{border-color:var(--orange);background:#FFF3E0}
+    .match-item.matched{border-color:var(--green);background:#D1FAE5;color:#065F46;cursor:default}
+    .match-item.wrong-match{border-color:var(--coral);background:#FEE2E2;animation:shake .3s}
+    .match-emoji{font-size:26px;display:block}
+    .match-svg{width:44px;height:44px;display:block;margin:0 auto 2px}
+    .match-word{font-size:13px;color:var(--dark)}
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+    /* Progress */
+    .progress-bar{height:10px;background:rgba(255,255,255,.4);border-radius:50px;
+      margin-bottom:14px;overflow:hidden}
+    .progress-fill{height:100%;background:linear-gradient(90deg,#FFD93D,#FF6B6B);
+      border-radius:50px;transition:width .5s ease}
+
+    /* Next btn */
+    .next-btn{
+      width:100%;background:linear-gradient(135deg,#A855F7,#EC4899);color:white;
+      border:none;border-radius:50px;padding:16px;
+      font-family:'Fredoka One',cursive;font-size:20px;cursor:pointer;
+      box-shadow:0 6px 20px rgba(168,85,247,.4);transition:transform .1s;letter-spacing:.5px;
+    }
+    .next-btn:hover{transform:translateY(-2px)}
+    .next-btn:active{transform:scale(.97)}
+
+    /* Feedback */
+    .feedback-overlay{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      display:flex;align-items:center;justify-content:center;
+      z-index:100;pointer-events:none;opacity:0;transition:opacity .3s;
+    }
+    .feedback-overlay.show{opacity:1}
+    .feedback-box{
+      background:white;border-radius:24px;padding:24px 36px;text-align:center;
+      box-shadow:0 20px 60px rgba(0,0,0,.2);
+      transform:scale(.8);transition:transform .3s cubic-bezier(.175,.885,.32,1.275);
+    }
+    .feedback-overlay.show .feedback-box{transform:scale(1)}
+    .feedback-emoji{font-size:60px;display:block}
+    .feedback-text{font-family:'Fredoka One',cursive;font-size:26px;margin-top:8px}
+    .feedback-text.good{color:var(--green)} .feedback-text.bad{color:var(--coral)}
+
+    /* Confetti */
+    .confetti-piece{position:fixed;border-radius:2px;pointer-events:none;z-index:200;
+      animation:confettiFall linear forwards}
+    @keyframes confettiFall{
+      0%{transform:translateY(-20px) rotate(0deg);opacity:1}
+      100%{transform:translateY(100vh) rotate(720deg);opacity:0}
+    }
+
+    /* Result */
+    .result-screen{display:none;background:rgba(255,255,255,.97);border-radius:28px;
+      padding:32px 24px;box-shadow:0 8px 32px rgba(0,0,0,.15);text-align:center}
+    .result-mascot{font-size:80px;display:block;margin-bottom:10px}
+    .result-title{font-family:'Fredoka One',cursive;font-size:30px;color:var(--purple);margin-bottom:6px}
+    .result-score{font-family:'Fredoka One',cursive;font-size:48px;color:var(--orange);margin:10px 0}
+    .result-stars{font-size:36px;margin-bottom:16px;display:block}
+    .result-msg{font-size:16px;color:#666;margin-bottom:24px}
+    .result-btns{display:flex;gap:10px}
+    .replay-btn{
+      flex:1;background:white;border:3px solid var(--purple);border-radius:50px;padding:14px;
+      font-family:'Fredoka One',cursive;font-size:18px;color:var(--purple);cursor:pointer;transition:all .15s;
+    }
+    .replay-btn:hover{background:var(--purple);color:white}
+    .menu-return-btn{
+      flex:1;background:linear-gradient(135deg,#A855F7,#EC4899);border:none;
+      border-radius:50px;padding:14px;font-family:'Fredoka One',cursive;
+      font-size:18px;color:white;cursor:pointer;transition:transform .1s;
+    }
+    .menu-return-btn:hover{transform:scale(1.02)}
+    .hidden{display:none!important}
+
+    @media(max-width:480px){
+      .game-title{font-size:26px} .vocab-word{font-size:30px}
+      .vocab-svg{width:90px;height:90px}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ CLOUDS ═══ -->
+<div class="clouds">
+  <div class="cloud c1" style="left:-200px"></div>
+  <div class="cloud c2" style="left:-300px"></div>
+  <div class="cloud c3" style="left:-150px"></div>
+</div>
+
+<div class="game-wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="game-title">🌟 English Fun! 🌟</div>
+    <div class="subtitle">Belajar Bahasa Inggris Seru!</div>
+  </div>
+
+  <!-- HUD -->
+  <div class="score-bar">
+    <div class="score-item lives"     id="livesDisplay">❤️❤️❤️</div>
+    <div class="score-item score-num" id="scoreDisplay">⭐ 0</div>
+    <div class="score-item streak"    id="streakDisplay">🔥 0x</div>
+  </div>
+
+  <!-- ═══ MENU ═══ -->
+  <div class="menu-screen" id="menuScreen">
+    <span class="menu-mascot">🦉</span>
+    <div class="menu-title">Halo, Pelajar Hebat!</div>
+    <div class="menu-desc">Pilih mode permainan favoritmu<br>dan mulai petualangan bahasa Inggris!</div>
+    <div class="mode-grid">
+      <button class="mode-btn m-vocab"  onclick="startMode('vocab')">
+        <span class="mode-emoji">📚</span>
+        <div class="mode-name">Vocab Quiz</div>
+        <div class="mode-sub">Tebak artinya!</div>
+      </button>
+      <button class="mode-btn m-quiz"   onclick="startMode('picture')">
+        <span class="mode-emoji">🖼️</span>
+        <div class="mode-name">Picture Quiz</div>
+        <div class="mode-sub">Lihat dan pilih!</div>
+      </button>
+      <button class="mode-btn m-spell"  onclick="startMode('spell')">
+        <span class="mode-emoji">🔤</span>
+        <div class="mode-name">Spelling</div>
+        <div class="mode-sub">Susun hurufnya!</div>
+      </button>
+      <button class="mode-btn m-match"  onclick="startMode('match')">
+        <span class="mode-emoji">🎯</span>
+        <div class="mode-name">Matching</div>
+        <div class="mode-sub">Cocokkan pasangan!</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ GAME ═══ -->
+  <div class="game-screen" id="gameScreen">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="game-card" id="gameCard"></div>
+    <button class="next-btn hidden" id="nextBtn" onclick="nextQuestion()">Lanjut! →</button>
+  </div>
+
+  <!-- ═══ RESULT ═══ -->
+  <div class="result-screen" id="resultScreen">
+    <span class="result-mascot" id="resultMascot">🏆</span>
+    <div class="result-title"   id="resultTitle">Luar Biasa!</div>
+    <div class="result-score"   id="resultScore">0</div>
+    <span class="result-stars"  id="resultStars">⭐⭐⭐</span>
+    <div class="result-msg"     id="resultMsg"></div>
+    <div class="result-btns">
+      <button class="replay-btn"      onclick="replayMode()">🔄 Main Lagi</button>
+      <button class="menu-return-btn" onclick="goMenu()">🏠 Menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Feedback popup -->
+<div class="feedback-overlay" id="feedbackOverlay">
+  <div class="feedback-box">
+    <span class="feedback-emoji" id="feedbackEmoji">🎉</span>
+    <div class="feedback-text"   id="feedbackText">Benar!</div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   SVG ILLUSTRATIONS  — fully inline, no file needed
+   Each returns an SVG string at the given size.
+═══════════════════════════════════════════════ */
+const SVG = {
+  Apple: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="40" cy="46" rx="28" ry="26" fill="#E53935"/>
+    <ellipse cx="28" cy="46" rx="8" ry="14" fill="#EF9A9A" opacity=".4"/>
+    <path d="M40 20 Q44 10 52 8" stroke="#388E3C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="54" cy="12" rx="8" ry="5" fill="#388E3C" transform="rotate(-20,54,12)"/>
+    <ellipse cx="40" cy="22" rx="4" ry="3" fill="#B71C1C"/>
+  </svg>`,
+
+  Banana: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18 60 Q20 30 50 18 Q62 14 66 20 Q54 18 44 28 Q28 42 26 62 Z" fill="#FDD835"/>
+    <path d="M20 58 Q22 32 50 20" stroke="#F9A825" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <ellipse cx="66" cy="20" rx="5" ry="4" fill="#795548" transform="rotate(20,66,20)"/>
+    <ellipse cx="24" cy="62" rx="5" ry="3" fill="#795548" transform="rotate(-20,24,62)"/>
+  </svg>`,
+
+  Cat: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="40" cy="50" rx="22" ry="18" fill="#FF8A65"/>
+    <ellipse cx="40" cy="36" rx="18" ry="17" fill="#FF8A65"/>
+    <polygon points="24,24 18,8 32,20" fill="#FF8A65"/>
+    <polygon points="56,24 62,8 48,20" fill="#FF8A65"/>
+    <polygon points="25,23 20,12 31,21" fill="#FFB74D"/>
+    <polygon points="55,23 60,12 49,21" fill="#FFB74D"/>
+    <ellipse cx="33" cy="34" rx="5" ry="6" fill="white"/>
+    <ellipse cx="47" cy="34" rx="5" ry="6" fill="white"/>
+    <ellipse cx="33" cy="35" rx="3" ry="4" fill="#1A1A2E"/>
+    <ellipse cx="47" cy="35" rx="3" ry="4" fill="#1A1A2E"/>
+    <circle cx="34" cy="34" r="1" fill="white"/>
+    <circle cx="48" cy="34" r="1" fill="white"/>
+    <ellipse cx="40" cy="41" rx="4" ry="3" fill="#F48FB1"/>
+    <line x1="24" y1="40" x2="10" y2="37" stroke="#795548" stroke-width="1.5"/>
+    <line x1="24" y1="42" x2="10" y2="42" stroke="#795548" stroke-width="1.5"/>
+    <line x1="24" y1="44" x2="10" y2="47" stroke="#795548" stroke-width="1.5"/>
+    <line x1="56" y1="40" x2="70" y2="37" stroke="#795548" stroke-width="1.5"/>
+    <line x1="56" y1="42" x2="70" y2="42" stroke="#795548" stroke-width="1.5"/>
+    <line x1="56" y1="44" x2="70" y2="47" stroke="#795548" stroke-width="1.5"/>
+    <path d="M38 43 Q40 46 42 43" stroke="#E91E63" stroke-width="1.5" fill="none"/>
+    <path d="M55 62 Q60 55 68 58 Q72 62 70 68" stroke="#FF8A65" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </svg>`,
+
+  Dog: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="40" cy="52" rx="22" ry="16" fill="#BCAAA4"/>
+    <ellipse cx="40" cy="36" rx="18" ry="16" fill="#BCAAA4"/>
+    <ellipse cx="22" cy="28" rx="8" ry="14" fill="#A1887F" transform="rotate(15,22,28)"/>
+    <ellipse cx="58" cy="28" rx="8" ry="14" fill="#A1887F" transform="rotate(-15,58,28)"/>
+    <ellipse cx="33" cy="34" rx="5" ry="6" fill="white"/>
+    <ellipse cx="47" cy="34" rx="5" ry="6" fill="white"/>
+    <ellipse cx="33" cy="35" rx="3" ry="4" fill="#1A1A2E"/>
+    <ellipse cx="47" cy="35" rx="3" ry="4" fill="#1A1A2E"/>
+    <circle cx="34" cy="34" r="1" fill="white"/>
+    <circle cx="48" cy="34" r="1" fill="white"/>
+    <ellipse cx="40" cy="44" rx="8" ry="6" fill="#D7CCC8"/>
+    <ellipse cx="40" cy="46" rx="5" ry="4" fill="#EF9A9A"/>
+    <ellipse cx="36" cy="42" rx="2" ry="2" fill="#5D4037"/>
+    <ellipse cx="44" cy="42" rx="2" ry="2" fill="#5D4037"/>
+    <path d="M58 66 Q65 60 70 64 Q68 70 62 70 Z" fill="#BCAAA4"/>
+  </svg>`,
+
+  Elephant: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="42" cy="50" rx="26" ry="20" fill="#90A4AE"/>
+    <ellipse cx="38" cy="32" rx="20" ry="18" fill="#90A4AE"/>
+    <ellipse cx="18" cy="26" rx="8" ry="12" fill="#78909C" transform="rotate(10,18,26)"/>
+    <path d="M28 42 Q20 52 18 62 Q22 66 26 62 Q28 55 30 48" fill="#90A4AE"/>
+    <ellipse cx="32" cy="30" rx="5" ry="6" fill="white"/>
+    <ellipse cx="44" cy="30" rx="5" ry="6" fill="white"/>
+    <ellipse cx="32" cy="31" rx="3" ry="4" fill="#1A1A2E"/>
+    <ellipse cx="44" cy="31" rx="3" ry="4" fill="#1A1A2E"/>
+    <circle cx="33" cy="30" r="1" fill="white"/>
+    <circle cx="45" cy="30" r="1" fill="white"/>
+    <path d="M26 46 Q22 52 20 58" stroke="#B0BEC5" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <ellipse cx="19" cy="60" rx="5" ry="3" fill="#78909C"/>
+    <line x1="30" y1="68" x2="30" y2="76" stroke="#78909C" stroke-width="5" stroke-linecap="round"/>
+    <line x1="42" y1="68" x2="42" y2="76" stroke="#78909C" stroke-width="5" stroke-linecap="round"/>
+    <line x1="54" y1="65" x2="54" y2="76" stroke="#78909C" stroke-width="5" stroke-linecap="round"/>
+  </svg>`,
+
+  Fish: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="36" cy="40" rx="24" ry="14" fill="#29B6F6"/>
+    <polygon points="60,40 72,28 72,52" fill="#0288D1"/>
+    <ellipse cx="28" cy="37" rx="5" ry="6" fill="white"/>
+    <ellipse cx="28" cy="38" rx="3" ry="4" fill="#1A237E"/>
+    <circle cx="27" cy="37" r="1" fill="white"/>
+    <path d="M36 34 Q44 30 50 34" stroke="#0288D1" stroke-width="1.5" fill="none"/>
+    <path d="M36 40 Q44 36 50 40" stroke="#0288D1" stroke-width="1.5" fill="none"/>
+    <path d="M36 46 Q44 42 50 46" stroke="#0288D1" stroke-width="1.5" fill="none"/>
+    <ellipse cx="38" cy="32" rx="6" ry="3" fill="#4FC3F7" opacity=".5"/>
+  </svg>`,
+
+  Flower: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <line x1="40" y1="50" x2="40" y2="75" stroke="#388E3C" stroke-width="3" stroke-linecap="round"/>
+    <path d="M40 60 Q30 55 28 48" stroke="#388E3C" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <ellipse cx="40" cy="32" rx="6" ry="12" fill="#F48FB1" transform="rotate(0,40,32)"/>
+    <ellipse cx="40" cy="32" rx="6" ry="12" fill="#F48FB1" transform="rotate(45,40,32)"/>
+    <ellipse cx="40" cy="32" rx="6" ry="12" fill="#CE93D8" transform="rotate(90,40,32)"/>
+    <ellipse cx="40" cy="32" rx="6" ry="12" fill="#CE93D8" transform="rotate(135,40,32)"/>
+    <circle cx="40" cy="32" r="10" fill="#FDD835"/>
+    <circle cx="40" cy="32" r="6" fill="#F9A825"/>
+    <circle cx="38" cy="30" r="1.5" fill="#FDD835"/>
+    <circle cx="42" cy="30" r="1.5" fill="#FDD835"/>
+    <circle cx="40" cy="34" r="1.5" fill="#FDD835"/>
+  </svg>`,
+
+  Sun: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="40" cy="40" r="18" fill="#FDD835"/>
+    <circle cx="40" cy="40" r="13" fill="#FFEE58"/>
+    ${[0,30,60,90,120,150,180,210,240,270,300,330].map(a=>{
+      const r=Math.PI*a/180, x1=40+22*Math.cos(r), y1=40+22*Math.sin(r),
+            x2=40+30*Math.cos(r), y2=40+30*Math.sin(r);
+      return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#FBC02D" stroke-width="3" stroke-linecap="round"/>`;
+    }).join('')}
+    <circle cx="35" cy="37" r="2.5" fill="#F9A825"/>
+    <circle cx="45" cy="37" r="2.5" fill="#F9A825"/>
+    <path d="M34 44 Q40 49 46 44" stroke="#F9A825" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </svg>`,
+
+  Moon: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <path d="M50 15 Q30 20 28 40 Q26 60 46 68 Q20 72 14 48 Q8 24 30 14 Q40 10 50 15Z" fill="#FFF176"/>
+    <circle cx="36" cy="30" r="4" fill="#FDD835" opacity=".6"/>
+    <circle cx="44" cy="50" r="3" fill="#FDD835" opacity=".5"/>
+    <circle cx="30" cy="52" r="2" fill="#FDD835" opacity=".4"/>
+    <circle cx="20" cy="25" r="2" fill="white" opacity=".8"/>
+    <circle cx="60" cy="18" r="3" fill="white" opacity=".8"/>
+    <circle cx="65" cy="35" r="1.5" fill="white" opacity=".6"/>
+  </svg>`,
+
+  Star: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="40,8 49,32 75,32 54,48 62,72 40,57 18,72 26,48 5,32 31,32" fill="#FDD835"/>
+    <polygon points="40,14 47,34 68,34 52,46 58,67 40,54 22,67 28,46 12,34 33,34" fill="#FFEE58"/>
+    <circle cx="36" cy="34" r="2" fill="white" opacity=".6"/>
+  </svg>`,
+
+  Book: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect x="12" y="14" width="28" height="52" rx="3" fill="#EF5350"/>
+    <rect x="14" y="14" width="24" height="52" rx="2" fill="#E53935"/>
+    <rect x="40" y="14" width="28" height="52" rx="3" fill="#42A5F5"/>
+    <rect x="40" y="14" width="24" height="52" rx="2" fill="#1E88E5"/>
+    <rect x="37" y="12" width="6" height="56" rx="3" fill="#795548"/>
+    <line x1="18" y1="26" x2="34" y2="26" stroke="white" stroke-width="2" opacity=".7"/>
+    <line x1="18" y1="32" x2="34" y2="32" stroke="white" stroke-width="2" opacity=".7"/>
+    <line x1="18" y1="38" x2="28" y2="38" stroke="white" stroke-width="2" opacity=".7"/>
+    <line x1="44" y1="26" x2="60" y2="26" stroke="white" stroke-width="2" opacity=".7"/>
+    <line x1="44" y1="32" x2="60" y2="32" stroke="white" stroke-width="2" opacity=".7"/>
+    <line x1="44" y1="38" x2="54" y2="38" stroke="white" stroke-width="2" opacity=".7"/>
+  </svg>`,
+
+  Pencil: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect x="32" y="10" width="16" height="50" rx="2" fill="#FDD835" transform="rotate(15,40,40)"/>
+    <polygon points="32,10 48,10 40,2" fill="#FFCA28" transform="rotate(15,40,40)"/>
+    <rect x="32" y="55" width="16" height="8" fill="#FFCCBC" transform="rotate(15,40,40)"/>
+    <polygon points="32,63 48,63 40,72" fill="#5D4037" transform="rotate(15,40,40)"/>
+    <rect x="32" y="10" width="16" height="4" fill="#FBC02D" transform="rotate(15,40,40)"/>
+    <line x1="40" y1="10" x2="40" y2="60" stroke="#F9A825" stroke-width="2" opacity=".4" transform="rotate(15,40,40)"/>
+  </svg>`,
+
+  Car: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="42" width="64" height="22" rx="6" fill="#EF5350"/>
+    <path d="M18 42 L26 26 L54 26 L62 42 Z" fill="#E53935"/>
+    <rect x="28" y="28" width="10" height="12" rx="2" fill="#B3E5FC"/>
+    <rect x="42" y="28" width="10" height="12" rx="2" fill="#B3E5FC"/>
+    <circle cx="22" cy="64" r="9" fill="#37474F"/>
+    <circle cx="22" cy="64" r="5" fill="#78909C"/>
+    <circle cx="58" cy="64" r="9" fill="#37474F"/>
+    <circle cx="58" cy="64" r="5" fill="#78909C"/>
+    <rect x="8" y="48" width="64" height="4" fill="#C62828" opacity=".5"/>
+    <rect x="60" y="44" width="8" height="6" rx="2" fill="#FFF176"/>
+    <rect x="12" y="44" width="8" height="6" rx="2" fill="#EF9A9A"/>
+  </svg>`,
+
+  Airplane: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 44 L52 28 L72 36 L52 44 Z" fill="#E3F2FD"/>
+    <path d="M8 44 L52 44 L72 36 L52 28 Z" fill="#90CAF9"/>
+    <ellipse cx="52" cy="36" rx="20" ry="8" fill="#42A5F5"/>
+    <path d="M20 44 L30 56 L38 52 L30 44 Z" fill="#90CAF9"/>
+    <path d="M60 36 L66 30 L70 34 L66 38 Z" fill="#1565C0"/>
+    <circle cx="54" cy="34" r="4" fill="#B3E5FC"/>
+    <circle cx="62" cy="34" r="3" fill="#B3E5FC"/>
+    <path d="M8 44 L12 46 L14 44 Z" fill="#1565C0"/>
+  </svg>`,
+
+  House: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="40,8 72,36 8,36" fill="#EF5350"/>
+    <polygon points="40,8 72,36 60,36 40,16 20,36 8,36" fill="#E53935"/>
+    <rect x="14" y="36" width="52" height="36" rx="2" fill="#FFECB3"/>
+    <rect x="14" y="36" width="52" height="8" fill="#FFE082"/>
+    <rect x="30" y="52" width="20" height="20" rx="2" fill="#A1887F"/>
+    <rect x="36" y="52" width="8" height="20" fill="#8D6E63"/>
+    <circle cx="38" cy="62" r="2" fill="#FDD835"/>
+    <rect x="18" y="42" width="12" height="12" rx="2" fill="#B3E5FC"/>
+    <rect x="50" y="42" width="12" height="12" rx="2" fill="#B3E5FC"/>
+    <line x1="24" y1="42" x2="24" y2="54" stroke="#90CAF9" stroke-width="1.5"/>
+    <line x1="18" y1="48" x2="30" y2="48" stroke="#90CAF9" stroke-width="1.5"/>
+    <line x1="56" y1="42" x2="56" y2="54" stroke="#90CAF9" stroke-width="1.5"/>
+    <line x1="50" y1="48" x2="62" y2="48" stroke="#90CAF9" stroke-width="1.5"/>
+  </svg>`,
+
+  Tree: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect x="34" y="56" width="12" height="20" rx="2" fill="#795548"/>
+    <polygon points="40,6 64,36 16,36" fill="#388E3C"/>
+    <polygon points="40,18 62,44 18,44" fill="#43A047"/>
+    <polygon points="40,28 60,54 20,54" fill="#4CAF50"/>
+    <circle cx="30" cy="26" r="4" fill="#66BB6A" opacity=".7"/>
+    <circle cx="52" cy="32" r="3" fill="#81C784" opacity=".7"/>
+    <circle cx="38" cy="38" r="3" fill="#A5D6A7" opacity=".6"/>
+  </svg>`,
+
+  Bird: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="42" cy="46" rx="18" ry="12" fill="#29B6F6"/>
+    <ellipse cx="34" cy="36" rx="12" ry="11" fill="#29B6F6"/>
+    <path d="M22 36 L10 30 L14 38 L10 44 Z" fill="#FDD835"/>
+    <ellipse cx="30" cy="33" rx="5" ry="6" fill="white"/>
+    <ellipse cx="30" cy="34" rx="3" ry="4" fill="#1A237E"/>
+    <circle cx="29" cy="33" r="1" fill="white"/>
+    <path d="M42 40 Q54 30 66 34 Q58 36 52 44 Z" fill="#0288D1"/>
+    <path d="M42 52 Q44 60 40 66 Q46 64 48 56 Z" fill="#0288D1"/>
+    <ellipse cx="54" cy="54" rx="4" ry="2" fill="#FDD835" transform="rotate(-20,54,54)"/>
+    <ellipse cx="56" cy="58" rx="4" ry="2" fill="#FDD835" transform="rotate(20,56,58)"/>
+  </svg>`,
+
+  Lion: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="40" cy="40" r="28" fill="#FF8F00" opacity=".9"/>
+    <circle cx="40" cy="40" r="22" fill="#FFB300"/>
+    <circle cx="40" cy="40" r="16" fill="#FFCA28"/>
+    <ellipse cx="40" cy="38" rx="12" ry="11" fill="#FFD54F"/>
+    <ellipse cx="33" cy="36" rx="4" ry="5" fill="white"/>
+    <ellipse cx="47" cy="36" rx="4" ry="5" fill="white"/>
+    <ellipse cx="33" cy="37" rx="2.5" ry="3.5" fill="#3E2723"/>
+    <ellipse cx="47" cy="37" rx="2.5" ry="3.5" fill="#3E2723"/>
+    <circle cx="34" cy="36" r="1" fill="white"/>
+    <circle cx="48" cy="36" r="1" fill="white"/>
+    <ellipse cx="40" cy="44" rx="5" ry="4" fill="#FFAB91"/>
+    <ellipse cx="36" cy="43" rx="2" ry="1.5" fill="#5D4037"/>
+    <ellipse cx="44" cy="43" rx="2" ry="1.5" fill="#5D4037"/>
+    <path d="M37 46 Q40 50 43 46" stroke="#E64A19" stroke-width="1.5" fill="none"/>
+    <line x1="22" y1="42" x2="8" y2="40" stroke="#BF360C" stroke-width="1.5"/>
+    <line x1="22" y1="44" x2="8" y2="44" stroke="#BF360C" stroke-width="1.5"/>
+    <line x1="58" y1="42" x2="72" y2="40" stroke="#BF360C" stroke-width="1.5"/>
+    <line x1="58" y1="44" x2="72" y2="44" stroke="#BF360C" stroke-width="1.5"/>
+  </svg>`,
+
+  Rabbit: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="40" cy="52" rx="18" ry="16" fill="#F5F5F5"/>
+    <ellipse cx="40" cy="36" rx="14" ry="14" fill="#F5F5F5"/>
+    <ellipse cx="30" cy="16" rx="6" ry="16" fill="#F5F5F5" transform="rotate(-10,30,16)"/>
+    <ellipse cx="50" cy="16" rx="6" ry="16" fill="#F5F5F5" transform="rotate(10,50,16)"/>
+    <ellipse cx="30" cy="16" rx="3" ry="12" fill="#F8BBD9" transform="rotate(-10,30,16)"/>
+    <ellipse cx="50" cy="16" rx="3" ry="12" fill="#F8BBD9" transform="rotate(10,50,16)"/>
+    <ellipse cx="34" cy="34" rx="4" ry="5" fill="white"/>
+    <ellipse cx="46" cy="34" rx="4" ry="5" fill="white"/>
+    <ellipse cx="34" cy="35" rx="2.5" ry="3.5" fill="#9C27B0"/>
+    <ellipse cx="46" cy="35" rx="2.5" ry="3.5" fill="#9C27B0"/>
+    <circle cx="35" cy="34" r="1" fill="white"/>
+    <circle cx="47" cy="34" r="1" fill="white"/>
+    <ellipse cx="40" cy="41" rx="4" ry="3" fill="#F8BBD9"/>
+    <ellipse cx="37" cy="40" rx="1.5" ry="1" fill="#CE93D8"/>
+    <ellipse cx="43" cy="40" rx="1.5" ry="1" fill="#CE93D8"/>
+    <ellipse cx="52" cy="56" rx="5" ry="3" fill="#F5F5F5" transform="rotate(30,52,56)"/>
+    <line x1="24" y1="42" x2="12" y2="40" stroke="#BDBDBD" stroke-width="1.5"/>
+    <line x1="24" y1="44" x2="12" y2="44" stroke="#BDBDBD" stroke-width="1.5"/>
+    <line x1="56" y1="42" x2="68" y2="40" stroke="#BDBDBD" stroke-width="1.5"/>
+    <line x1="56" y1="44" x2="68" y2="44" stroke="#BDBDBD" stroke-width="1.5"/>
+  </svg>`,
+
+  Water: (s=80)=>`<svg width="${s}" height="${s}" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <path d="M40 10 Q28 30 24 44 Q20 62 40 68 Q60 62 56 44 Q52 30 40 10Z" fill="#29B6F6"/>
+    <path d="M40 10 Q32 28 30 44 Q28 58 40 64" stroke="#4FC3F7" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M40 10 Q46 28 46 40 Q46 55 40 64" stroke="#0288D1" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/>
+    <ellipse cx="34" cy="38" rx="6" ry="3" fill="white" opacity=".4" transform="rotate(-20,34,38)"/>
+    <ellipse cx="46" cy="50" rx="4" ry="2" fill="white" opacity=".3" transform="rotate(15,46,50)"/>
+  </svg>`
+};
+
+/* helper – returns the SVG HTML string */
+function img(word, size=80) {
+  return SVG[word] ? SVG[word](size) : `<span style="font-size:${size*0.9}px;line-height:1">${EMOJI[word]||'❓'}</span>`;
+}
+
+/* fallback emoji map */
+const EMOJI = {
+  Apple:'🍎',Banana:'🍌',Cat:'🐱',Dog:'🐶',Elephant:'🐘',Fish:'🐟',
+  Flower:'🌸',Sun:'☀️',Moon:'🌙',Star:'⭐',Book:'📚',Pencil:'✏️',
+  Car:'🚗',Airplane:'✈️',House:'🏠',Tree:'🌳',Bird:'🐦',Lion:'🦁',
+  Rabbit:'🐰',Water:'💧'
+};
+
+/* ── Vocab Data ── */
+const VOCAB_DATA = [
+  { word:'Apple',    meaning:'Apel',     phonetic:'/ˈæp.əl/',     category:'Buah' },
+  { word:'Banana',   meaning:'Pisang',   phonetic:'/bəˈnɑː.nə/',  category:'Buah' },
+  { word:'Cat',      meaning:'Kucing',   phonetic:'/kæt/',         category:'Hewan' },
+  { word:'Dog',      meaning:'Anjing',   phonetic:'/dɒɡ/',         category:'Hewan' },
+  { word:'Elephant', meaning:'Gajah',    phonetic:'/ˈel.ɪ.fənt/', category:'Hewan' },
+  { word:'Fish',     meaning:'Ikan',     phonetic:'/fɪʃ/',         category:'Hewan' },
+  { word:'Flower',   meaning:'Bunga',    phonetic:'/ˈflaʊ.ər/',   category:'Alam' },
+  { word:'Sun',      meaning:'Matahari', phonetic:'/sʌn/',         category:'Alam' },
+  { word:'Moon',     meaning:'Bulan',    phonetic:'/muːn/',        category:'Alam' },
+  { word:'Star',     meaning:'Bintang',  phonetic:'/stɑːr/',       category:'Alam' },
+  { word:'Book',     meaning:'Buku',     phonetic:'/bʊk/',         category:'Benda' },
+  { word:'Pencil',   meaning:'Pensil',   phonetic:'/ˈpen.səl/',    category:'Benda' },
+  { word:'Car',      meaning:'Mobil',    phonetic:'/kɑːr/',        category:'Transportasi' },
+  { word:'Airplane', meaning:'Pesawat',  phonetic:'/ˈeər.pleɪn/', category:'Transportasi' },
+  { word:'House',    meaning:'Rumah',    phonetic:'/haʊs/',        category:'Tempat' },
+  { word:'Tree',     meaning:'Pohon',    phonetic:'/triː/',        category:'Alam' },
+  { word:'Bird',     meaning:'Burung',   phonetic:'/bɜːrd/',       category:'Hewan' },
+  { word:'Lion',     meaning:'Singa',    phonetic:'/ˈlaɪ.ən/',    category:'Hewan' },
+  { word:'Rabbit',   meaning:'Kelinci',  phonetic:'/ˈræb.ɪt/',    category:'Hewan' },
+  { word:'Water',    meaning:'Air',      phonetic:'/ˈwɔː.tər/',   category:'Alam' },
+];
+
+/* ── State ── */
+let currentMode='', currentQ=0, totalQ=8, score=0, lives=3, streak=0;
+let questionData=[], answered=false;
+
+function shuffle(a){return[...a].sort(()=>Math.random()-.5)}
+function pick(a,n){return shuffle(a).slice(0,n)}
+
+function updateHUD(){
+  document.getElementById('livesDisplay').textContent='❤️'.repeat(lives)+( lives<3?'🖤'.repeat(3-lives):'' );
+  document.getElementById('scoreDisplay').textContent=`⭐ ${score}`;
+  document.getElementById('streakDisplay').textContent=`🔥 ${streak}x`;
+}
+
+/* ── Start ── */
+function startMode(mode){
+  currentMode=mode; currentQ=0; score=0; lives=3; streak=0; updateHUD();
+  questionData=pick(VOCAB_DATA,totalQ);
+  document.getElementById('menuScreen').style.display='none';
+  document.getElementById('resultScreen').style.display='none';
+  document.getElementById('gameScreen').style.display='block';
+  document.getElementById('nextBtn').classList.add('hidden');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  answered=false;
+  document.getElementById('nextBtn').classList.add('hidden');
+  document.getElementById('progressFill').style.width=(currentQ/totalQ*100)+'%';
+  const item=questionData[currentQ], card=document.getElementById('gameCard');
+  if(currentMode==='vocab')   renderVocab(item,card);
+  else if(currentMode==='picture') renderPicture(item,card);
+  else if(currentMode==='spell')   renderSpell(item,card);
+  else if(currentMode==='match')   renderMatch(card);
+}
+
+function getWrongs(item,n){return shuffle(VOCAB_DATA.filter(v=>v.word!==item.word)).slice(0,n)}
+
+/* ── MODE 1: VOCAB ── */
+function renderVocab(item,card){
+  const opts=shuffle([item,...getWrongs(item,3)]);
+  card.innerHTML=`
+    <div class="question-label">Apa arti kata ini? 🤔</div>
+    <div class="vocab-svg">${img(item.word,100)}</div>
+    <div class="vocab-word">${item.word}</div>
+    <div class="vocab-phonetic">${item.phonetic}</div>
+    <div class="options-grid">
+      ${opts.map(o=>`<button class="opt-btn" onclick="checkVocabAns(this,'${o.meaning}','${item.meaning}')">${o.meaning}</button>`).join('')}
+    </div>`;
+}
+function checkVocabAns(btn,chosen,correct){
+  if(answered)return; answered=true;
+  document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
+  if(chosen===correct){btn.classList.add('correct');onCorrect();}
+  else{
+    btn.classList.add('wrong');
+    document.querySelectorAll('.opt-btn').forEach(b=>{if(b.textContent.trim()===correct)b.classList.add('correct');});
+    onWrong();
+  }
+  document.getElementById('nextBtn').classList.remove('hidden');
+}
+
+/* ── MODE 2: PICTURE ── */
+function renderPicture(item,card){
+  const opts=shuffle([item,...getWrongs(item,3)]);
+  card.innerHTML=`
+    <div class="question-label">Pilih gambar yang benar! 🖼️</div>
+    <div style="font-family:'Fredoka One',cursive;font-size:34px;color:#A855F7;margin:12px 0">${item.word}</div>
+    <div style="color:#999;font-size:13px;margin-bottom:12px">${item.phonetic}</div>
+    <div class="options-grid">
+      ${opts.map(o=>`<button class="opt-btn" onclick="checkPicAns(this,'${o.word}','${item.word}')">
+        <span class="opt-svg">${img(o.word,36)}</span>${o.meaning}
+      </button>`).join('')}
+    </div>`;
+}
+function checkPicAns(btn,chosen,correct){
+  if(answered)return; answered=true;
+  document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
+  if(chosen===correct){btn.classList.add('correct');onCorrect();}
+  else{
+    btn.classList.add('wrong');
+    document.querySelectorAll('.opt-btn').forEach(b=>{
+      if((b.getAttribute('onclick')||'').includes(`'${correct}'`))b.classList.add('correct');
+    });
+    onWrong();
+  }
+  document.getElementById('nextBtn').classList.remove('hidden');
+}
+
+/* ── MODE 3: SPELLING ── */
+let spellWord='', spellAnswer=[], spellLetters=[];
+function renderSpell(item,card){
+  spellWord=item.word.toUpperCase(); spellAnswer=[];
+  const extras='AEIOURSTLN'.split('').filter(c=>!spellWord.includes(c));
+  spellLetters=shuffle([...spellWord.split(''),...pick(extras,Math.min(4,extras.length))]);
+  card.innerHTML=`
+    <div class="question-label">Susun hurufnya! 🔤</div>
+    <div class="spell-svg">${img(item.word,90)}</div>
+    <div class="spell-hint">Artinya: <strong>${item.meaning}</strong></div>
+    <div class="letter-display" id="letterDisplay">
+      ${spellWord.split('').map((_,i)=>`<div class="letter-box" id="lb${i}"></div>`).join('')}
+    </div>
+    <div class="letter-choices">
+      ${spellLetters.map((l,i)=>`<button class="letter-btn" id="lbtn${i}" onclick="pickLetter(${i},'${l}')">${l}</button>`).join('')}
+    </div>
+    <button class="clear-btn" onclick="clearSpell()">✕ Hapus</button>`;
+}
+function pickLetter(idx,letter){
+  if(answered)return;
+  const btn=document.getElementById('lbtn'+idx); if(btn.disabled)return;
+  btn.disabled=true; spellAnswer.push({idx,letter});
+  const lb=document.getElementById('lb'+(spellAnswer.length-1));
+  lb.textContent=letter; lb.classList.add('filled');
+  if(spellAnswer.length===spellWord.length){
+    answered=true;
+    const formed=spellAnswer.map(a=>a.letter).join('');
+    const ok=formed===spellWord;
+    document.querySelectorAll('.letter-box').forEach(b=>{
+      b.style.background=ok?'#D1FAE5':'#FEE2E2';
+      b.style.borderColor=ok?'#10B981':'#EF4444';
+      b.style.color=ok?'#065F46':'#991B1B';
+    });
+    ok?onCorrect():onWrong();
+    document.getElementById('nextBtn').classList.remove('hidden');
+  }
+}
+function clearSpell(){
+  if(answered)return;
+  spellAnswer.forEach(a=>{ document.getElementById('lbtn'+a.idx).disabled=false; });
+  spellAnswer=[];
+  for(let i=0;i<spellWord.length;i++){
+    const lb=document.getElementById('lb'+i);
+    lb.textContent=''; lb.classList.remove('filled');
+    lb.style.background=lb.style.borderColor=lb.style.color='';
+  }
+}
+
+/* ── MODE 4: MATCHING ── */
+let matchData=[],matchSelected=null,matchPairs={},matchDone=0;
+function renderMatch(card){
+  const pool=pick(VOCAB_DATA,4); matchData=pool; matchSelected=null; matchPairs={}; matchDone=0;
+  const lefts=shuffle(pool), rights=shuffle(pool);
+  card.innerHTML=`
+    <div class="question-label">Cocokkan kata dengan gambarnya! 🎯</div>
+    <div class="match-grid" style="margin-top:14px">
+      <div class="match-col">
+        ${lefts.map(it=>`<div class="match-item" id="ml_${it.word}" onclick="selectMatch('word','${it.word}')">
+          <span class="match-word" style="font-size:16px;font-weight:800">${it.word}</span>
+        </div>`).join('')}
+      </div>
+      <div class="match-col">
+        ${rights.map(it=>`<div class="match-item" id="mr_${it.word}" onclick="selectMatch('emoji','${it.word}')">
+          <span class="match-svg">${img(it.word,44)}</span>
+          <span class="match-word">${it.meaning}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+function selectMatch(side,word){
+  if(matchPairs[word])return;
+  if(matchSelected&&matchSelected.side===side)return;
+  if(!matchSelected){
+    matchSelected={side,word};
+    document.getElementById((side==='word'?'ml_':'mr_')+word).classList.add('selected');
+  } else {
+    const wk=side==='word'?word:matchSelected.word;
+    const ek=side==='emoji'?word:matchSelected.word;
+    const pId=(matchSelected.side==='word'?'ml_':'mr_')+matchSelected.word;
+    const cId=(side==='word'?'ml_':'mr_')+word;
+    document.getElementById(pId).classList.remove('selected');
+    if(wk===ek){
+      document.getElementById('ml_'+wk).classList.add('matched');
+      document.getElementById('mr_'+wk).classList.add('matched');
+      matchPairs[wk]=true; matchDone++;
+      if(matchDone===matchData.length){
+        answered=true; onCorrect();
+        document.getElementById('nextBtn').classList.remove('hidden');
+      }
+    } else {
+      [pId,cId].forEach(id=>{
+        document.getElementById(id).classList.add('wrong-match');
+        setTimeout(()=>document.getElementById(id).classList.remove('wrong-match'),400);
+      });
+      lives=Math.max(0,lives-1); streak=0; updateHUD();
+    }
+    matchSelected=null;
+  }
+}
+
+/* ── Feedback ── */
+function onCorrect(){
+  score+=streak>=3?2:1; streak++; updateHUD(); showFeedback(true); spawnConfetti();
+}
+function onWrong(){
+  lives=Math.max(0,lives-1); streak=0; updateHUD(); showFeedback(false);
+}
+function showFeedback(ok){
+  const overlay=document.getElementById('feedbackOverlay');
+  const emojis=ok?['🎉','⭐','🌟','🥳','👏','🎊','💫','🏆']:['😅','🙈','💪','😮','🤔'];
+  const texts=ok?['Benar!','Hebat!','Keren!','Yes!','Mantap!']:['Salah!','Coba Lagi!','Hampir!','Semangat!'];
+  document.getElementById('feedbackEmoji').textContent=emojis[Math.floor(Math.random()*emojis.length)];
+  const ft=document.getElementById('feedbackText');
+  ft.textContent=texts[Math.floor(Math.random()*texts.length)];
+  ft.className='feedback-text '+(ok?'good':'bad');
+  overlay.classList.add('show');
+  setTimeout(()=>overlay.classList.remove('show'),900);
+}
+function spawnConfetti(){
+  const colors=['#FF6B6B','#FFD93D','#6EC6F5','#A855F7','#7ED957','#FF9F43','#FF6CAB','#4ECDC4'];
+  for(let i=0;i<18;i++){
+    const el=document.createElement('div');
+    el.className='confetti-piece';
+    el.style.cssText=`left:${Math.random()*100}vw;top:-20px;width:${8+Math.random()*8}px;height:${8+Math.random()*8}px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${.8+Math.random()*.8}s;animation-delay:${Math.random()*.3}s;transform:rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),1800);
+  }
+}
+
+/* ── Navigation ── */
+function nextQuestion(){
+  currentQ++;
+  if(currentQ>=totalQ||lives<=0) showResult();
+  else renderQuestion();
+}
+function showResult(){
+  document.getElementById('gameScreen').style.display='none';
+  document.getElementById('resultScreen').style.display='block';
+  const pct=score/(totalQ*2)*100;
+  let mascot,title,stars,msg;
+  if(pct>=80){mascot='🏆';title='Luar Biasa!';stars='⭐⭐⭐';msg=`Kamu mendapat ${score} bintang! Kamu jagoan bahasa Inggris!`;}
+  else if(pct>=50){mascot='🌟';title='Bagus Sekali!';stars='⭐⭐';msg=`${score} bintang! Terus berlatih ya, kamu pasti bisa!`;}
+  else{mascot='💪';title='Ayo Semangat!';stars='⭐';msg='Jangan menyerah! Coba lagi dan kamu pasti lebih baik!';}
+  document.getElementById('resultMascot').textContent=mascot;
+  document.getElementById('resultTitle').textContent=title;
+  document.getElementById('resultScore').textContent=`${score} ⭐`;
+  document.getElementById('resultStars').textContent=stars;
+  document.getElementById('resultMsg').textContent=msg;
+  for(let i=0;i<30;i++) setTimeout(spawnConfetti,i*60);
+}
+function replayMode(){startMode(currentMode);}
+function goMenu(){
+  document.getElementById('resultScreen').style.display='none';
+  document.getElementById('gameScreen').style.display='none';
+  document.getElementById('menuScreen').style.display='block';
+  currentQ=0;score=0;lives=3;streak=0;updateHUD();
+}
+
+updateHUD();
+</script>
+</body>
+</html>

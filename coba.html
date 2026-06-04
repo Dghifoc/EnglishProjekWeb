@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>English Quiz Game</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    h1 {
+      color: #0077ff;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .question {
+      font-size: 24px;
+      margin-bottom: 25px;
+      color: #222;
+    }
+
+    .answers {
+      display: grid;
+      gap: 15px;
+    }
+
+    button {
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .answer-btn {
+      background: #f1f5ff;
+      color: #222;
+      border: 2px solid #dce6ff;
+    }
+
+    .answer-btn:hover {
+      background: #d8e7ff;
+      transform: scale(1.02);
+    }
+
+    .correct {
+      background: #4caf50 !important;
+      color: white;
+    }
+
+    .wrong {
+      background: #f44336 !important;
+      color: white;
+    }
+
+    .next-btn, .restart-btn {
+      margin-top: 20px;
+      background: #0077ff;
+      color: white;
+      width: 100%;
+    }
+
+    .next-btn:hover, .restart-btn:hover {
+      background: #005fd1;
+    }
+
+    .hide {
+      display: none;
+    }
+
+    .result {
+      font-size: 28px;
+      margin-bottom: 15px;
+      color: #0077ff;
+    }
+
+    .score-text {
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .question {
+        font-size: 20px;
+      }
+
+      button {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="quiz-container">
+      <h1>English Learning Game</h1>
+      <p class="subtitle">Belajar Bahasa Inggris Dengan Quiz Interaktif</p>
+
+      <div class="info">
+        <span id="score">Score: 0</span>
+        <span id="question-number">Question: 1/10</span>
+      </div>
+
+      <div id="question" class="question"></div>
+
+      <div id="answer-buttons" class="answers"></div>
+
+      <button id="next-btn" class="next-btn hide">Next Question</button>
+    </div>
+
+    <div id="result-container" class="hide">
+      <div class="result">Quiz Selesai!</div>
+      <div id="final-score" class="score-text"></div>
+      <button id="restart-btn" class="restart-btn">Main Lagi</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        question: "What is the meaning of 'Book'?",
+        answers: [
+          { text: "Buku", correct: true },
+          { text: "Pensil", correct: false },
+          { text: "Tas", correct: false },
+          { text: "Meja", correct: false }
+        ]
+      },
+      {
+        question: "What is the meaning of 'Apple'?",
+        answers: [
+          { text: "Jeruk", correct: false },
+          { text: "Mangga", correct: false },
+          { text: "Apel", correct: true },
+          { text: "Anggur", correct: false }
+        ]
+      },
+      {
+        question: "Choose the correct translation: 'Kucing'",
+        answers: [
+          { text: "Dog", correct: false },
+          { text: "Cat", correct: true },
+          { text: "Bird", correct: false },
+          { text: "Fish", correct: false }
+        ]
+      },
+      {
+        question: "What is the meaning of 'School'?",
+        answers: [
+          { text: "Rumah", correct: false },
+          { text: "Kelas", correct: false },
+          { text: "Sekolah", correct: true },
+          { text: "Jalan", correct: false }
+        ]
+      },
+      {
+        question: "Choose the correct translation: 'Makan'",
+        answers: [
+          { text: "Sleep", correct: false },
+          { text: "Drink", correct: false },
+          { text: "Eat", correct: true },
+          { text: "Walk", correct: false }
+        ]
+      },
+      {
+        question: "What is the meaning of 'Teacher'?",
+        answers: [
+          { text: "Dokter", correct: false },
+          { text: "Guru", correct: true },
+          { text: "Polisi", correct: false },
+          { text: "Siswa", correct: false }
+        ]
+      },
+      {
+        question: "Choose the correct translation: 'Air'",
+        answers: [
+          { text: "Water", correct: true },
+          { text: "Fire", correct: false },
+          { text: "Wind", correct: false },
+          { text: "Stone", correct: false }
+        ]
+      },
+      {
+        question: "What is the meaning of 'Friend'?",
+        answers: [
+          { text: "Teman", correct: true },
+          { text: "Musuh", correct: false },
+          { text: "Guru", correct: false },
+          { text: "Saudara", correct: false }
+        ]
+      },
+      {
+        question: "Choose the correct translation: 'Besar'",
+        answers: [
+          { text: "Small", correct: false },
+          { text: "Big", correct: true },
+          { text: "Short", correct: false },
+          { text: "Thin", correct: false }
+        ]
+      },
+      {
+        question: "What is the meaning of 'Beautiful'?",
+        answers: [
+          { text: "Jelek", correct: false },
+          { text: "Cantik", correct: true },
+          { text: "Cepat", correct: false },
+          { text: "Kecil", correct: false }
+        ]
+      }
+    ];
+
+    const questionElement = document.getElementById('question');
+    const answerButtons = document.getElementById('answer-buttons');
+    const nextButton = document.getElementById('next-btn');
+    const scoreElement = document.getElementById('score');
+    const questionNumber = document.getElementById('question-number');
+    const resultContainer = document.getElementById('result-container');
+    const quizContainer = document.getElementById('quiz-container');
+    const finalScore = document.getElementById('final-score');
+    const restartButton = document.getElementById('restart-btn');
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    function startGame() {
+      currentQuestionIndex = 0;
+      score = 0;
+      scoreElement.innerText = `Score: ${score}`;
+      resultContainer.classList.add('hide');
+      quizContainer.classList.remove('hide');
+      showQuestion();
+    }
+
+    function showQuestion() {
+      resetState();
+
+      let currentQuestion = questions[currentQuestionIndex];
+      let questionNo = currentQuestionIndex + 1;
+
+      questionNumber.innerText = `Question: ${questionNo}/${questions.length}`;
+      questionElement.innerText = currentQuestion.question;
+
+      currentQuestion.answers.forEach(answer => {
+        const button = document.createElement('button');
+        button.innerText = answer.text;
+        button.classList.add('answer-btn');
+
+        if(answer.correct) {
+          button.dataset.correct = answer.correct;
+        }
+
+        button.addEventListener('click', selectAnswer);
+        answerButtons.appendChild(button);
+      });
+    }
+
+    function resetState() {
+      nextButton.classList.add('hide');
+
+      while(answerButtons.firstChild) {
+        answerButtons.removeChild(answerButtons.firstChild);
+      }
+    }
+
+    function selectAnswer(e) {
+      const selectedBtn = e.target;
+      const isCorrect = selectedBtn.dataset.correct === 'true';
+
+      if(isCorrect) {
+        selectedBtn.classList.add('correct');
+        score++;
+        scoreElement.innerText = `Score: ${score}`;
+      } else {
+        selectedBtn.classList.add('wrong');
+      }
+
+      Array.from(answerButtons.children).forEach(button => {
+        if(button.dataset.correct === 'true') {
+          button.classList.add('correct');
+        }
+        button.disabled = true;
+      });
+
+      nextButton.classList.remove('hide');
+    }
+
+    function showResult() {
+      quizContainer.classList.add('hide');
+      resultContainer.classList.remove('hide');
+
+      finalScore.innerHTML = `Kamu mendapatkan skor <b>${score}</b> dari <b>${questions.length}</b> soal.`;
+    }
+
+    function handleNextButton() {
+      currentQuestionIndex++;
+
+      if(currentQuestionIndex < questions.length) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    nextButton.addEventListener('click', handleNextButton);
+    restartButton.addEventListener('click', startGame);
+
+    startGame();
+  </script>
+</body>
+</html>

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Quest: English Puzzle Adventure</title>
+    <style>
+        :root {
+            --primary: #4776e6;
+            --primary-dark: #8e54e9;
+            --bg-gradient: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
+            --easy-color: #2ecc71;
+            --medium-color: #f39c12;
+            --hard-color: #e74c3c;
+            --board-bg: #202430;
+            --card-bg: #2d3244;
+            --text-main: #ffffff;
+            --text-muted: #a0aec0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--text-main);
+        }
+
+        .game-window {
+            background: rgba(24, 28, 41, 0.95);
+            width: 100%;
+            max-width: 750px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            border: 2px solid rgba(255,255,255,0.1);
+            padding: 30px;
+            overflow: hidden;
+        }
+
+        /* HEADER & CONFIG */
+        .game-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+
+        .config-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #1a1d29;
+            padding: 15px 20px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .diff-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .diff-cluster {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-diff {
+            padding: 8px 18px;
+            border-radius: 20px;
+            border: 2px solid transparent;
+            background: #25293a;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-diff:hover {
+            color: #fff;
+            background: #2f344a;
+        }
+
+        .btn-diff.active[data-level="easy"] { border-color: var(--easy-color); color: var(--easy-color); background: rgba(46, 204, 113, 0.1); }
+        .btn-diff.active[data-level="medium"] { border-color: var(--medium-color); color: var(--medium-color); background: rgba(243, 156, 18, 0.1); }
+        .btn-diff.active[data-level="hard"] { border-color: var(--hard-color); color: var(--hard-color); background: rgba(231, 76, 60, 0.1); }
+
+        /* STATUS METRICS */
+        .metrics {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 12px;
+        }
+
+        .metric-box {
+            text-align: center;
+        }
+
+        .metric-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .metric-val {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        #timer.warning {
+            color: var(--hard-color);
+            animation: pulse 0.6s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        /* HINT BOX */
+        .hint-container {
+            background: #1b1e2b;
+            padding: 15px 20px;
+            border-radius: 14px;
+            border-left: 5px solid var(--primary);
+            margin-bottom: 25px;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .hint-tag {
+            font-weight: 700;
+            color: #00c6ff;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        /* PUZZLE WORKSPACE */
+        .puzzle-arena {
+            background: var(--board-bg);
+            border-radius: 20px;
+            padding: 30px 20px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .pool-title {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+        }
+
+        /* Letter Box Container */
+        .letter-rack {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            min-height: 70px;
+            align-content: center;
+        }
+
+        .rack-target {
+            border-bottom: 3px dashed #404b69;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+        }
+
+        /* Visual Puzzle Block Piece style */
+        .tile {
+            background: linear-gradient(145deg, #3a3f58, #282c3d);
+            color: #fff;
+            font-size: 1.8rem;
+            font-weight: 800;
+            width: 55px;
+            height: 55px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #1b1e29, 0 8px 15px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.1s, background 0.2s, box-shadow 0.1s;
+            position: relative;
+        }
+
+        /* Puzzle Piece Interlock Simulation Decorations */
+        .tile::before {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: inherit;
+            border-radius: 50%;
+            top: 50%;
+            right: -6px;
+            transform: translateY(-50%);
+            box-shadow: 2px 0 3px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+
+        .tile:hover {
+            background: linear-gradient(145deg, #464c6a, #2f344a);
+            transform: translateY(-2px);
+        }
+
+        .tile:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #1b1e29, 0 4px 6px rgba(0,0,0,0.4);
+        }
+
+        /* BUTTON CONTRUCTS */
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-act {
+            padding: 15px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            color: #white;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(to right, #11998e, #38ef7d);
+            color: white;
+            box-shadow: 0 5px 15px rgba(56, 239, 125, 0.3);
+        }
+
+        .btn-submit:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-reset {
+            background: #2c3142;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-reset:hover {
+            background: #373d52;
+        }
+
+        .btn-skip-main {
+            grid-column: span 2;
+            background: transparent;
+            color: #a0aec0;
+            border: 2px dashed #404b69;
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+
+        .btn-skip-main:hover {
+            color: #fff;
+            border-color: #718096;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .btn-act:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* FEEDBACK TOAST/BANNER */
+        .alert-banner {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.15rem;
+            font-weight: 700;
+            min-height: 30px;
+            transition: all 0.3s;
+        }
+
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 500px) {
+            .tile {
+                width: 42px;
+                height: 42px;
+                font-size: 1.3rem;
+                box-shadow: 0 4px 0 #1b1e29, 0 4px 8px rgba(0,0,0,0.4);
+            }
+            .tile::before {
+                width: 9px;
+                height: 9px;
+                right: -4px;
+            }
+            h1 { font-size: 1.7rem; }
+            .game-window { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-window">
+    <div class="game-header">
+        <h1>Word Quest</h1>
+        <p class="subtitle">Interaktif Drag-and-Click English Word Puzzle</p>
+    </div>
+
+    <!-- Pilihan Tingkat Kesulitan & Skor Berdampingan/Fleksibel -->
+    <div class="config-bar">
+        <div>
+            <div class="diff-label">Tingkat Kesulitan</div>
+            <div class="diff-cluster">
+                <button class="btn-diff active" data-level="easy" onclick="setDifficulty('easy')">Easy</button>
+                <button class="btn-diff" data-level="medium" onclick="setDifficulty('medium')">Medium</button>
+                <button class="btn-diff" data-level="hard" onclick="setDifficulty('hard')">Hard</button>
+            </div>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric-box">
+                <div class="metric-title">Sisa Waktu</div>
+                <div class="metric-val" id="timer">30s</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-title">Skor Pemain</div>
+                <div class="metric-val" id="score" style="color: #00c6ff;">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Area Petunjuk Arti Kata -->
+    <div class="hint-container">
+        <span class="hint-tag">Clue / Arti Kata:</span>
+        <div id="hintText">Loading clue...</div>
+    </div>
+
+    <!-- Papan Utama Game Puzzle Kotak Komponen -->
+    <div class="puzzle-arena">
+        <div class="pool-title">Susun Jawaban Di Sini (Klik Kotak Untuk Memindahkan)</div>
+        <!-- Kolom Jawaban yang Sedang Disusun -->
+        <div class="letter-rack rack-target" id="answerRack"></div>
+
+        <div class="pool-title">Pilihan Pecahan Huruf Acak</div>
+        <!-- Kolom Penyedia Huruf Acak -->
+        <div class="letter-rack" id="scrambledRack"></div>
+    </div>
+
+    <!-- Navigasi Utama Kendali Game -->
+    <div class="control-grid">
+        <button class="btn-act btn-reset" onclick="resetCurrentWordPieces()">Reset Susunan</button>
+        <button class="btn-act btn-submit" id="btnSubmit" onclick="verifyAnswer()">Kirim Jawaban</button>
+        <button class="btn-act btn-skip-main" id="btnSkip" onclick="skipCurrentWord()">Lewati Kata Ini (Skip)</button>
+    </div>
+
+    <div class="alert-banner" id="alertMessage"></div>
+</div>
+
+<script>
+    // Kamus data komprehensif game edukasi
+    const wordsCollection = {
+        easy: [
+            { word: "CAT", hint: "Hewan peliharaan berkaki empat yang suka mengeong (Kucing)" },
+            { word: "DOG", hint: "Hewan berkaki empat, setia, dikenal sebagai penjaga rumah (Anjing)" },
+            { word: "FISH", hint: "Makhluk hidup yang bernapas di dalam air menggunakan insang (Ikan)" },
+            { word: "BOOK", hint: "Kumpulan kertas bertuliskan informasi yang biasa dibaca (Buku)" },
+            { word: "MILK", hint: "Cairan putih bernutrisi tinggi yang dihasilkan oleh sapi (Susu)" },
+            { word: "TREE", hint: "Tumbuhan berkayu besar yang memiliki batang dan daun (Pohon)" },
+            { word: "BIRD", hint: "Hewan berbulu dan memiliki sayap yang mayoritas bisa terbang (Burung)" },
+            { word: "HOME", hint: "Tempat tinggal utama bersama keluarga tercinta (Rumah)" }
+        ],
+        medium: [
+            { word: "APPLE", hint: "Buah bulat renyah yang biasanya berwarna merah atau hijau (Apel)" },
+            { word: "GUITAR", hint: "Alat musik yang memiliki senar/dawai dan dimainkan dengan dipetik (Gitar)" },
+            { word: "OCEAN", hint: "Kumpulan air asin yang sangat luas di bumi (Lautan)" },
+            { word: "GARDEN", hint: "Area tanah terbuka tempat menanam bunga, sayur, atau tanaman (Taman)" },
+            { word: "SCHOOL", hint: "Lembaga institusi tempat siswa menuntut ilmu dan belajar (Sekolah)" },
+            { word: "KITCHEN", hint: "Ruangan khusus di dalam rumah tempat memasak makanan (Dapur)" },
+            { word: "BICYCLE", hint: "Kendaraan roda dua ramah lingkungan tanpa mesin yang dikayuh (Sepeda)" },
+            { word: "WINDOW", hint: "Lubang angin berbingkai kaca pada dinding rumah (Jendela)" }
+        ],
+        hard: [
+            { word: "COMPUTER", hint: "Perangkat elektronik pintar pengolah data digital komputerisasi" },
+            { word: "MOUNTAIN", hint: "Bentang alam tanah yang menjulang sangat tinggi ke atas bumi (Gunung)" },
+            { word: "ALGORITHM", hint: "Urutan langkah logis dan sistematis untuk memecahkan masalah komputasi" },
+            { word: "ARCHITECTURE", hint: "Seni atau ilmu teknik merancang dan membangun konstruksi bangunan" },
+            { word: "VOCABULARY", hint: "Perbendaharaan kata atau kosakata yang dimiliki suatu bahasa" },
+            { word: "ENVIRONMENT", hint: "Segala sesuatu kombinasi kondisi fisik yang ada di sekeliling kita (Lingkungan)" },
+            { word: "CHALLENGE", hint: "Hal atau situasi objek tertentu yang menguji kemampuan kita (Tantangan)" },
+            { word: "MYSTERIOUS", hint: "Sifat penuh rahasia, sulit dimengerti atau dipecahkan (Misterius)" }
+        ]
+    };
+
+    const standardTimeLimit = { easy: 30, medium: 20, hard: 15 };
+
+    let activeLevel = "easy";
+    let targetWord = "";
+    let initialScrambledArray = [];
+    let cumulativeScore = 0;
+    let secondsLeft = 0;
+    let primaryTimer = null;
+    let blockInteraction = false;
+
+    // Fungsi memuat babak baru permainan
+    function loadRound() {
+        if (primaryTimer) clearInterval(primaryTimer);
+        
+        // Reset state & UI
+        document.getElementById("alertMessage").innerText = "";
+        document.getElementById("answerRack").innerHTML = "";
+        document.getElementById("scrambledRack").innerHTML = "";
+        toggleControls(false);
+        blockInteraction = false;
+
+        // Penarikan database kata acak
+        const levelPool = wordsCollection[activeLevel];
+        const selectedObject = levelPool[Math.floor(Math.random() * levelPool.length)];
+        targetWord = selectedObject.word;
+        
+        document.getElementById("hintText").innerText = selectedObject.hint;
+
+        // Proses pengacakan struktur huruf kata asli
+        let letters = targetWord.split('');
+        do {
+            letters.sort(() => Math.random() - 0.5);
+        } while (letters.join('') === targetWord && targetWord.length > 1);
+        
+        initialScrambledArray = [...letters];
+
+        // Cetak blok puzzle ke rak acak bawah
+        initialScrambledArray.forEach((letter, index) => {
+            const tileNode = document.createElement("div");
+            tileNode.className = "tile";
+            tileNode.innerText = letter;
+            tileNode.setAttribute("data-init-id", index);
+            tileNode.onclick = () => transferPiece(tileNode);
+            document.getElementById("scrambledRack").appendChild(tileNode);
+        });
+
+        // Setelan Timer Hitung Mundur Aktif
+        secondsLeft = standardTimeLimit[activeLevel];
+        refreshTimerUI();
+
+        primaryTimer = setInterval(() => {
+            secondsLeft--;
+            refreshTimerUI();
+
+            if (secondsLeft <= 5) {
+                document.getElementById("timer").classList.add("warning");
+            } else {
+                document.getElementById("timer").classList.remove("warning");
+            }
+
+            if (secondsLeft <= 0) {
+                timeOutTrigger();
+            }
+        }, 1000);
+    }
+
+    // Mekanisme pemindahan blok huruf interaktif click-to-move
+    function transferPiece(element) {
+        if (blockInteraction) return;
+
+        const parentId = element.parentNode.id;
+        const targetRack = (parentId === "scrambledRack") ? "answerRack" : "scrambledRack";
+        
+        document.getElementById(targetRack).appendChild(element);
+        document.getElementById("alertMessage").innerText = ""; // Clear alert on action
+    }
+
+    // Tombol Reset mengembalikan seluruh blok ke bawah secara instan
+    function resetCurrentWordPieces() {
+        if (blockInteraction) return;
+        
+        const answerRack = document.getElementById("answerRack");
+        const scrambledRack = document.getElementById("scrambledRack");
+        const workingTiles = Array.from(answerRack.children);
+        
+        workingTiles.forEach(tile => {
+            scrambledRack.appendChild(tile);
+        });
+        document.getElementById("alertMessage").innerText = "";
+    }
+
+    function refreshTimerUI() {
+        document.getElementById("timer").innerText = secondsLeft + "s";
+    }
+
+    // Ganti preferensi tingkat kesulitan permainan
+    function setDifficulty(chosenLevel) {
+        if (activeLevel === chosenLevel && !blockInteraction) return;
+        activeLevel = chosenLevel;
+
+        document.querySelectorAll(".btn-diff").forEach(button => {
+            if (button.getAttribute("data-level") === chosenLevel) {
+                button.classList.add("active");
+            } else {
+                button.classList.remove("active");
+            }
+        });
+
+        loadRound();
+    }
+
+    // Verifikasi validasi kecocokan rangkaian huruf buatan user
+    function verifyAnswer() {
+        if (blockInteraction) return;
+
+        const builtAnswer = Array.from(document.getElementById("answerRack").children)
+                                 .map(tile => tile.innerText)
+                                 .join('');
+        const alertBox = document.getElementById("alertMessage");
+
+        if (builtAnswer.length === 0) {
+            alertBox.style.color = "var(--medium-color)";
+            alertBox.innerText = "⚠️ Susun potongan puzzle di atas terlebih dahulu!";
+            return;
+        }
+
+        if (builtAnswer === targetWord) {
+            clearInterval(primaryTimer);
+            blockInteraction = true;
+            alertBox.style.color = "var(--easy-color)";
+            alertBox.innerText = "🎉 Luar Biasa! Jawaban Kamu Benar!";
+
+            // Hitung kalkulasi bobot skor per level
+            let rewardPoints = 10;
+            if (activeLevel === "medium") rewardPoints = 15;
+            if (activeLevel === "hard") rewardPoints = 25;
+
+            cumulativeScore += rewardPoints;
+            document.getElementById("score").innerText = cumulativeScore;
+
+            toggleControls(true);
+            setTimeout(loadRound, 1800);
+        } else {
+            alertBox.style.color = "var(--hard-color)";
+            alertBox.innerText = "❌ Susunan salah atau belum tepat. Coba susun ulang!";
+        }
+    }
+
+    // Fitur skip / lewati kata aktif saat macet berpikir
+    function skipCurrentWord() {
+        if (blockInteraction) return;
+        clearInterval(primaryTimer);
+        blockInteraction = true;
+
+        const alertBox = document.getElementById("alertMessage");
+        alertBox.style.color = "var(--medium-color)";
+        alertBox.innerText = `Dilewati! Jawaban yang benar adalah: ${targetWord}`;
+
+        toggleControls(true);
+        setTimeout(loadRound, 2200);
+    }
+
+    // Penanganan otomatis apabila durasi waktu hitung mundur menyentuh angka 0
+    function timeOutTrigger() {
+        clearInterval(primaryTimer);
+        blockInteraction = true;
+
+        const alertBox = document.getElementById("alertMessage");
+        alertBox.style.color = "var(--hard-color)";
+        alertBox.innerText = `⏰ Waktu Habis! Kunci jawaban: ${targetWord}`;
+
+        toggleControls(true);
+        setTimeout(loadRound, 2500);
+    }
+
+    function toggleControls(disableState) {
+        if (disableState) {
+            document.getElementById("btnSubmit").setAttribute("disabled", "true");
+            document.getElementById("btnSkip").setAttribute("disabled", "true");
+        } else {
+            document.getElementById("btnSubmit").removeAttribute("disabled");
+            document.getElementById("btnSkip").removeAttribute("disabled");
+        }
+    }
+
+    // Load up game secara otomatis pasca inisialisasi dokumen selesai sempurna
+    window.onload = loadRound;
+</script>
+
+</body>
+</html>

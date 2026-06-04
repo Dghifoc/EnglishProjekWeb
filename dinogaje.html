@@ -1,0 +1,237 @@
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: transparent; }
+#gameWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 0 1.5rem;
+  font-family: var(--font-mono, monospace);
+}
+#scoreRow {
+  display: flex;
+  justify-content: space-between;
+  width: 600px;
+  max-width: 95vw;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono, monospace);
+}
+#gameCanvas {
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-primary);
+  display: block;
+  image-rendering: pixelated;
+}
+#msg {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.04em;
+}
+</style>
+
+<div id="gameWrapper">
+  <h2 class="sr-only">dino plenger</h2>
+  <div id="scoreRow">
+    <span>SKOR: <span id="score">0</span></span>
+    <span>HI: <span id="hi">0</span></span>
+  </div>
+  <canvas id="gameCanvas" width="600" height="180"></canvas>
+  <div id="msg">SPASI LONCAT / KAU KLIK BIAR MULAI</div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const GND = H - 34;
+
+const scoreEl = document.getElementById('score');
+const hiEl = document.getElementById('hi');
+const msgEl = document.getElementById('msg');
+
+const isDark = () => {
+  try { return window.matchMedia('(prefers-color-scheme: dark)').matches; } catch(e) { return false; }
+};
+
+function colors() {
+  const dark = isDark();
+  return {
+    text:    dark ? '#e0e0d0' : '#333',
+    ground:  dark ? '#555' : '#999',
+    dino:    dark ? '#aaa' : '#555',
+    cactus:  dark ? '#8bc' : '#3a7a5a',
+    cloud:   dark ? '#666' : '#ccc',
+    gameover: dark ? '#f88' : '#c33',
+  };
+}
+
+let state = 'idle';
+let score = 0, hiScore = 0, frame = 0, speed = 4, raf;
+
+const dino = {
+  x: 60, y: GND, w: 22, h: 30,
+  vy: 0, onGround: true, legPhase: 0,
+  jump() {
+    if (this.onGround) { this.vy = -13; this.onGround = false; }
+  },
+  update() {
+    this.vy += 0.7;
+    this.y += this.vy;
+    if (this.y >= GND) { this.y = GND; this.vy = 0; this.onGround = true; }
+    if (this.onGround) this.legPhase = (this.legPhase + 0.3) % (Math.PI * 2);
+  },
+  draw(c) {
+    const cx = this.x, cy = this.y;
+    c.fillStyle = colors().dino;
+    // body
+    c.fillRect(cx - 9, cy - 26, 18, 18);
+    // head
+    c.fillRect(cx - 5, cy - 34, 16, 12);
+    // eye
+    c.fillStyle = colors().text === '#333' ? '#fff' : '#222';
+    c.fillRect(cx + 5, cy - 31, 4, 4);
+    c.fillStyle = '#111';
+    c.fillRect(cx + 6, cy - 30, 2, 2);
+    // legs
+    c.fillStyle = colors().dino;
+    const lp = this.legPhase;
+    const l1 = this.onGround ? Math.sin(lp) * 5 : 0;
+    const l2 = this.onGround ? Math.sin(lp + Math.PI) * 5 : 4;
+    c.fillRect(cx - 7, cy - 10, 6, 12 + l1);
+    c.fillRect(cx + 1, cy - 10, 6, 12 + l2);
+    // tail
+    c.fillRect(cx - 15, cy - 18, 8, 6);
+    c.fillRect(cx - 18, cy - 24, 6, 8);
+  },
+  box() { return { x: this.x - 8, y: this.y - 26, w: 16, h: 26 }; }
+};
+
+let cacti = [], clouds = [];
+function spawnCactus() {
+  const h = 24 + Math.random() * 20;
+  const w = 10 + Math.random() * 8;
+  const num = Math.random() < 0.35 ? 2 : 1;
+  cacti.push({ x: W + 20, w: w * num + (num > 1 ? 6 : 0), h, num });
+}
+function spawnCloud() {
+  clouds.push({ x: W + 10, y: 30 + Math.random() * 40, w: 40 + Math.random() * 30, h: 14 });
+}
+
+function drawCactus(c, ca) {
+  c.fillStyle = colors().cactus;
+  const seg = ca.num > 1 ? ca.w / ca.num - 2 : ca.w;
+  for (let i = 0; i < ca.num; i++) {
+    const bx = ca.x + i * (seg + 2);
+    c.fillRect(bx, GND - ca.h, seg, ca.h);
+    c.fillRect(bx - 5, GND - ca.h * 0.6, 5, 7);
+    c.fillRect(bx + seg, GND - ca.h * 0.55, 5, 7);
+  }
+}
+
+function drawCloud(c, cl) {
+  c.fillStyle = colors().cloud;
+  c.fillRect(cl.x, cl.y, cl.w, cl.h * 0.6);
+  c.fillRect(cl.x + 8, cl.y - cl.h * 0.3, cl.w * 0.6, cl.h * 0.5);
+}
+
+function drawGround(c) {
+  c.strokeStyle = colors().ground;
+  c.lineWidth = 1.5;
+  c.beginPath(); c.moveTo(0, GND + 2); c.lineTo(W, GND + 2); c.stroke();
+  c.lineWidth = 0.5;
+  for (let i = 0; i < 20; i++) {
+    const x = ((frame * speed * 0.5 + i * 32) % W);
+    c.beginPath(); c.moveTo(x, GND + 5); c.lineTo(x + 12, GND + 5); c.stroke();
+  }
+}
+
+function collides(dino, cactus) {
+  const db = dino.box();
+  const cb = { x: cactus.x - 4, y: GND - cactus.h, w: cactus.w, h: cactus.h };
+  return db.x < cb.x + cb.w && db.x + db.w > cb.x &&
+         db.y < cb.y + cb.h && db.y + db.h > cb.y;
+}
+
+let nextCactus = 80, nextCloud = 50;
+
+function loop() {
+  raf = requestAnimationFrame(loop);
+  ctx.clearRect(0, 0, W, H);
+
+  if (state === 'running') {
+    frame++;
+    score++;
+    scoreEl.textContent = score;
+
+    speed = 4 + Math.floor(score / 400) * 0.6;
+
+    nextCloud--;
+    if (nextCloud <= 0) { spawnCloud(); nextCloud = 100 + Math.random() * 120; }
+    nextCactus--;
+    if (nextCactus <= 0) {
+      spawnCactus();
+      nextCactus = Math.max(40, 90 - Math.floor(score / 200) * 4) + Math.random() * 50;
+    }
+
+    clouds.forEach(cl => cl.x -= speed * 0.35);
+    cacti.forEach(ca => ca.x -= speed);
+    clouds = clouds.filter(cl => cl.x > -120);
+    cacti = cacti.filter(ca => ca.x > -60);
+
+    dino.update();
+
+    for (const ca of cacti) {
+      if (collides(dino, ca)) { gameOver(); return; }
+    }
+  }
+
+  clouds.forEach(cl => drawCloud(ctx, cl));
+  drawGround(ctx);
+  cacti.forEach(ca => drawCactus(ctx, ca));
+  dino.draw(ctx);
+
+  if (state === 'gameover') {
+    ctx.fillStyle = colors().gameover;
+    ctx.font = '600 18px ' + (getComputedStyle(document.body).fontFamily || 'monospace');
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER', W / 2, H / 2 - 10);
+    ctx.fillStyle = colors().text;
+    ctx.font = '13px monospace';
+    ctx.fillText('Tekan SPASI / klik untuk coba lagi', W / 2, H / 2 + 14);
+    ctx.textAlign = 'left';
+  }
+}
+
+function startGame() {
+  if (state === 'running') return;
+  dino.y = GND; dino.vy = 0; dino.onGround = true;
+  cacti = []; clouds = [];
+  score = 0; frame = 0; speed = 4;
+  nextCactus = 80; nextCloud = 50;
+  state = 'running';
+  msgEl.textContent = 'SPASI / klik / tap untuk lompat';
+  cancelAnimationFrame(raf);
+  loop();
+}
+
+function gameOver() {
+  state = 'gameover';
+  if (score > hiScore) { hiScore = score; hiEl.textContent = hiScore; }
+}
+
+function handleAction() {
+  if (state === 'idle' || state === 'gameover') startGame();
+  else if (state === 'running') dino.jump();
+}
+
+document.addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); handleAction(); } });
+canvas.addEventListener('click', handleAction);
+canvas.addEventListener('touchstart', e => { e.preventDefault(); handleAction(); }, { passive: false });
+
+loop();
+</script>
